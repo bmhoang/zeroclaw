@@ -9948,6 +9948,7 @@ tool_dispatcher = "xml"
             allowed_users: vec!["*".into()],
             receive_mode: LarkReceiveMode::Websocket,
             port: None,
+            proxy_url: None,
         });
 
         config.agents.insert(
@@ -11623,6 +11624,7 @@ default_model = "legacy-model"
             allowed_users: vec!["*".into()],
             receive_mode: LarkReceiveMode::Websocket,
             port: None,
+            proxy_url: None,
         });
         config.save().await.unwrap();
 
