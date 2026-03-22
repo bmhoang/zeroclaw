@@ -21,8 +21,6 @@ pub struct DiscordHistoryChannel {
     /// Dedicated discord.db memory backend.
     discord_memory: Arc<dyn Memory>,
     typing_handles: Mutex<HashMap<String, tokio::task::JoinHandle<()>>>,
-    /// Cache for channel IDs to names.
-    channel_names: Mutex<HashMap<String, String>>,
     proxy_url: Option<String>,
     /// When false, DM messages are not stored in discord.db.
     store_dms: bool,
@@ -47,7 +45,6 @@ impl DiscordHistoryChannel {
             channel_ids,
             discord_memory,
             typing_handles: Mutex::new(HashMap::new()),
-            channel_names: Mutex::new(HashMap::new()),
             proxy_url: None,
             store_dms,
             respond_to_dms,
