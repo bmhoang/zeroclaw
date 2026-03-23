@@ -19,11 +19,14 @@ pub mod clawdtalk;
 pub mod cli;
 pub mod dingtalk;
 pub mod discord;
+pub mod discord_history;
 pub mod email_channel;
+pub mod gmail_push;
 pub mod imessage;
 pub mod irc;
 #[cfg(feature = "channel-lark")]
 pub mod lark;
+pub mod link_enricher;
 pub mod linq;
 #[cfg(feature = "channel-matrix")]
 pub mod matrix;
@@ -61,7 +64,9 @@ pub use clawdtalk::{ClawdTalkChannel, ClawdTalkConfig};
 pub use cli::CliChannel;
 pub use dingtalk::DingTalkChannel;
 pub use discord::DiscordChannel;
+pub use discord_history::DiscordHistoryChannel;
 pub use email_channel::EmailChannel;
+pub use gmail_push::GmailPushChannel;
 pub use imessage::IMessageChannel;
 pub use irc::IrcChannel;
 #[cfg(feature = "channel-lark")]
@@ -2062,6 +2067,25 @@ async fn process_channel_message(
         msg
     };
 
+    // ── Link enricher: prepend URL summaries before agent sees the message ──
+    let le_config = &ctx.prompt_config.link_enricher;
+    if le_config.enabled {
+        let enricher_cfg = link_enricher::LinkEnricherConfig {
+            enabled: le_config.enabled,
+            max_links: le_config.max_links,
+            timeout_secs: le_config.timeout_secs,
+        };
+        let enriched = link_enricher::enrich_message(&msg.content, &enricher_cfg).await;
+        if enriched != msg.content {
+            tracing::info!(
+                channel = %msg.channel,
+                sender = %msg.sender,
+                "Link enricher: prepended URL summaries to message"
+            );
+            msg.content = enriched;
+        }
+    }
+
     let target_channel = ctx
         .channels_by_name
         .get(&msg.channel)
@@ -3666,13 +3690,16 @@ fn build_channel_by_id(config: &Config, channel_id: &str) -> Result<Arc<dyn Chan
                 .discord
                 .as_ref()
                 .context("Discord channel is not configured")?;
-            Ok(Arc::new(DiscordChannel::new(
-                dc.bot_token.clone(),
-                dc.guild_id.clone(),
-                dc.allowed_users.clone(),
-                dc.listen_to_bots,
-                dc.mention_only,
-            )))
+            Ok(Arc::new(
+                DiscordChannel::new(
+                    dc.bot_token.clone(),
+                    dc.guild_id.clone(),
+                    dc.allowed_users.clone(),
+                    dc.listen_to_bots,
+                    dc.mention_only,
+                )
+                .with_transcription(config.transcription.clone()),
+            ))
         }
         "slack" => {
             let sl = config
@@ -3688,7 +3715,8 @@ fn build_channel_by_id(config: &Config, channel_id: &str) -> Result<Arc<dyn Chan
                     Vec::new(),
                     sl.allowed_users.clone(),
                 )
-                .with_workspace_dir(config.workspace_dir.clone()),
+                .with_workspace_dir(config.workspace_dir.clone())
+                .with_transcription(config.transcription.clone()),
             ))
         }
         other => anyhow::bail!("Unknown channel '{other}'. Supported: telegram, discord, slack"),
@@ -3774,9 +3802,35 @@ fn collect_configured_channels(
                     dc.listen_to_bots,
                     dc.mention_only,
                 )
-                .with_proxy_url(dc.proxy_url.clone()),
+                .with_proxy_url(dc.proxy_url.clone())
+                .with_transcription(config.transcription.clone()),
             ),
         });
+    }
+
+    if let Some(ref dh) = config.channels_config.discord_history {
+        match crate::memory::SqliteMemory::new_named(&config.workspace_dir, "discord") {
+            Ok(discord_mem) => {
+                channels.push(ConfiguredChannel {
+                    display_name: "Discord History",
+                    channel: Arc::new(
+                        DiscordHistoryChannel::new(
+                            dh.bot_token.clone(),
+                            dh.guild_id.clone(),
+                            dh.allowed_users.clone(),
+                            dh.channel_ids.clone(),
+                            Arc::new(discord_mem),
+                            dh.store_dms,
+                            dh.respond_to_dms,
+                        )
+                        .with_proxy_url(dh.proxy_url.clone()),
+                    ),
+                });
+            }
+            Err(e) => {
+                tracing::error!("discord_history: failed to open discord.db: {e}");
+            }
+        }
     }
 
     if let Some(ref sl) = config.channels_config.slack {
@@ -3793,7 +3847,8 @@ fn collect_configured_channels(
                 .with_thread_replies(sl.thread_replies.unwrap_or(true))
                 .with_group_reply_policy(sl.mention_only, Vec::new())
                 .with_workspace_dir(config.workspace_dir.clone())
-                .with_proxy_url(sl.proxy_url.clone()),
+                .with_proxy_url(sl.proxy_url.clone())
+                .with_transcription(config.transcription.clone()),
             ),
         });
     }
@@ -3826,11 +3881,12 @@ fn collect_configured_channels(
     if let Some(ref mx) = config.channels_config.matrix {
         channels.push(ConfiguredChannel {
             display_name: "Matrix",
-            channel: Arc::new(MatrixChannel::new_with_session_hint_and_zeroclaw_dir(
+            channel: Arc::new(MatrixChannel::new_full(
                 mx.homeserver.clone(),
                 mx.access_token.clone(),
                 mx.room_id.clone(),
                 mx.allowed_users.clone(),
+                mx.allowed_rooms.clone(),
                 mx.user_id.clone(),
                 mx.device_id.clone(),
                 config.config_path.parent().map(|path| path.to_path_buf()),
@@ -3968,6 +4024,15 @@ fn collect_configured_channels(
             display_name: "Email",
             channel: Arc::new(EmailChannel::new(email_cfg.clone())),
         });
+    }
+
+    if let Some(ref gp_cfg) = config.channels_config.gmail_push {
+        if gp_cfg.enabled {
+            channels.push(ConfiguredChannel {
+                display_name: "Gmail Push",
+                channel: Arc::new(GmailPushChannel::new(gp_cfg.clone())),
+            });
+        }
     }
 
     if let Some(ref irc) = config.channels_config.irc {
@@ -4307,22 +4372,22 @@ pub async fn start_channels(config: Config) -> Result<()> {
     };
     // Build system prompt from workspace identity files + skills
     let workspace = config.workspace_dir.clone();
-    let (mut built_tools, delegate_handle_ch): (Vec<Box<dyn Tool>>, _) =
-        tools::all_tools_with_runtime(
-            Arc::new(config.clone()),
-            &security,
-            runtime,
-            Arc::clone(&mem),
-            composio_key,
-            composio_entity_id,
-            &config.browser,
-            &config.http_request,
-            &config.web_fetch,
-            &workspace,
-            &config.agents,
-            config.api_key.as_deref(),
-            &config,
-        );
+    let (mut built_tools, delegate_handle_ch, reaction_handle_ch) = tools::all_tools_with_runtime(
+        Arc::new(config.clone()),
+        &security,
+        runtime,
+        Arc::clone(&mem),
+        composio_key,
+        composio_entity_id,
+        &config.browser,
+        &config.http_request,
+        &config.web_fetch,
+        &workspace,
+        &config.agents,
+        config.api_key.as_deref(),
+        &config,
+        None,
+    );
 
     // Wire MCP tools into the registry before freezing — non-fatal.
     // When `deferred_loading` is enabled, MCP tools are NOT added eagerly.
@@ -4596,6 +4661,15 @@ pub async fn start_channels(config: Config) -> Result<()> {
             .map(|ch| (ch.name().to_string(), Arc::clone(ch)))
             .collect::<HashMap<_, _>>(),
     );
+
+    // Populate the reaction tool's channel map now that channels are initialized.
+    if let Some(ref handle) = reaction_handle_ch {
+        let mut map = handle.write();
+        for (name, ch) in channels_by_name.as_ref() {
+            map.insert(name.clone(), Arc::clone(ch));
+        }
+    }
+
     let max_in_flight_messages = compute_max_in_flight_messages(channels.len());
 
     println!("  🚦 In-flight message limit: {max_in_flight_messages}");
@@ -6828,6 +6902,9 @@ BTC is currently around $65,000 based on latest tool output."#
                 timestamp: "2026-02-20T00:00:00Z".to_string(),
                 session_id: None,
                 score: Some(0.9),
+                namespace: "default".into(),
+                importance: None,
+                superseded_by: None,
             }])
         }
 
@@ -7649,9 +7726,9 @@ BTC is currently around $65,000 based on latest tool output."#
         assert!(prompt.contains("<instructions>"));
         assert!(prompt
             .contains("<instruction>Always run cargo test before final response.</instruction>"));
-        assert!(prompt.contains("<tools>"));
-        assert!(prompt.contains("<name>lint</name>"));
-        assert!(prompt.contains("<kind>shell</kind>"));
+        // Registered tools (shell kind) appear under <callable_tools> with prefixed names
+        assert!(prompt.contains("<callable_tools"));
+        assert!(prompt.contains("<name>code-review.lint</name>"));
         assert!(!prompt.contains("loaded on demand"));
     }
 
@@ -7694,10 +7771,10 @@ BTC is currently around $65,000 based on latest tool output."#
         assert!(!prompt.contains("<instructions>"));
         assert!(!prompt
             .contains("<instruction>Always run cargo test before final response.</instruction>"));
-        // Compact mode should still include tools so the LLM knows about them
-        assert!(prompt.contains("<tools>"));
-        assert!(prompt.contains("<name>lint</name>"));
-        assert!(prompt.contains("<kind>shell</kind>"));
+        // Compact mode should still include tools so the LLM knows about them.
+        // Registered tools (shell kind) appear under <callable_tools> with prefixed names.
+        assert!(prompt.contains("<callable_tools"));
+        assert!(prompt.contains("<name>code-review.lint</name>"));
     }
 
     #[test]

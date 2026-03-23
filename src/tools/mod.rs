@@ -20,6 +20,7 @@ pub mod browser;
 pub mod browser_delegate;
 pub mod browser_open;
 pub mod calculator;
+pub mod canvas;
 pub mod claude_code;
 pub mod cli_discovery;
 pub mod cloud_ops;
@@ -34,6 +35,7 @@ pub mod cron_runs;
 pub mod cron_update;
 pub mod data_management;
 pub mod delegate;
+pub mod discord_search;
 pub mod file_edit;
 pub mod file_read;
 pub mod file_write;
@@ -70,13 +72,17 @@ pub mod pdf_read;
 pub mod project_intel;
 pub mod proxy_config;
 pub mod pushover;
+pub mod reaction;
 pub mod read_skill;
 pub mod report_templates;
 pub mod schedule;
 pub mod schema;
 pub mod screenshot;
 pub mod security_ops;
+pub mod sessions;
 pub mod shell;
+pub mod skill_http;
+pub mod skill_tool;
 pub mod swarm;
 pub mod text_browser;
 pub mod tool_search;
@@ -94,6 +100,7 @@ pub use browser::{BrowserTool, ComputerUseConfig};
 pub use browser_delegate::{BrowserDelegateConfig, BrowserDelegateTool};
 pub use browser_open::BrowserOpenTool;
 pub use calculator::CalculatorTool;
+pub use canvas::{CanvasStore, CanvasTool};
 pub use claude_code::ClaudeCodeTool;
 pub use cloud_ops::CloudOpsTool;
 pub use cloud_patterns::CloudPatternsTool;
@@ -107,6 +114,7 @@ pub use cron_runs::CronRunsTool;
 pub use cron_update::CronUpdateTool;
 pub use data_management::DataManagementTool;
 pub use delegate::DelegateTool;
+pub use discord_search::DiscordSearchTool;
 pub use file_edit::FileEditTool;
 pub use file_read::FileReadTool;
 pub use file_write::FileWriteTool;
@@ -141,13 +149,19 @@ pub use pdf_read::PdfReadTool;
 pub use project_intel::ProjectIntelTool;
 pub use proxy_config::ProxyConfigTool;
 pub use pushover::PushoverTool;
+pub use reaction::{ChannelMapHandle, ReactionTool};
 pub use read_skill::ReadSkillTool;
 pub use schedule::ScheduleTool;
 #[allow(unused_imports)]
 pub use schema::{CleaningStrategy, SchemaCleanr};
 pub use screenshot::ScreenshotTool;
 pub use security_ops::SecurityOpsTool;
+pub use sessions::{SessionsHistoryTool, SessionsListTool, SessionsSendTool};
 pub use shell::ShellTool;
+#[allow(unused_imports)]
+pub use skill_http::SkillHttpTool;
+#[allow(unused_imports)]
+pub use skill_tool::SkillShellTool;
 pub use swarm::SwarmTool;
 pub use text_browser::TextBrowserTool;
 pub use tool_search::ToolSearchTool;
@@ -249,6 +263,33 @@ pub fn default_tools_with_runtime(
     ]
 }
 
+/// Register skill-defined tools into an existing tool registry.
+///
+/// Converts each skill's `[[tools]]` entries into callable `Tool` implementations
+/// and appends them to the registry. Skill tools that would shadow a built-in tool
+/// name are skipped with a warning.
+pub fn register_skill_tools(
+    tools_registry: &mut Vec<Box<dyn Tool>>,
+    skills: &[crate::skills::Skill],
+    security: Arc<SecurityPolicy>,
+) {
+    let skill_tools = crate::skills::skills_to_tools(skills, security);
+    let existing_names: std::collections::HashSet<String> = tools_registry
+        .iter()
+        .map(|t| t.name().to_string())
+        .collect();
+    for tool in skill_tools {
+        if existing_names.contains(tool.name()) {
+            tracing::warn!(
+                "Skill tool '{}' shadows built-in tool, skipping",
+                tool.name()
+            );
+        } else {
+            tools_registry.push(tool);
+        }
+    }
+}
+
 /// Create full tool registry including memory tools and optional Composio
 #[allow(clippy::implicit_hasher, clippy::too_many_arguments)]
 pub fn all_tools(
@@ -264,7 +305,12 @@ pub fn all_tools(
     agents: &HashMap<String, DelegateAgentConfig>,
     fallback_api_key: Option<&str>,
     root_config: &crate::config::Config,
-) -> (Vec<Box<dyn Tool>>, Option<DelegateParentToolsHandle>) {
+    canvas_store: Option<CanvasStore>,
+) -> (
+    Vec<Box<dyn Tool>>,
+    Option<DelegateParentToolsHandle>,
+    Option<ChannelMapHandle>,
+) {
     all_tools_with_runtime(
         config,
         security,
@@ -279,6 +325,7 @@ pub fn all_tools(
         agents,
         fallback_api_key,
         root_config,
+        canvas_store,
     )
 }
 
@@ -298,7 +345,12 @@ pub fn all_tools_with_runtime(
     agents: &HashMap<String, DelegateAgentConfig>,
     fallback_api_key: Option<&str>,
     root_config: &crate::config::Config,
-) -> (Vec<Box<dyn Tool>>, Option<DelegateParentToolsHandle>) {
+    canvas_store: Option<CanvasStore>,
+) -> (
+    Vec<Box<dyn Tool>>,
+    Option<DelegateParentToolsHandle>,
+    Option<ChannelMapHandle>,
+) {
     let has_shell_access = runtime.has_shell_access();
     let sandbox = create_sandbox(&root_config.security);
     let mut tool_arcs: Vec<Arc<dyn Tool>> = vec![
@@ -338,7 +390,20 @@ pub fn all_tools_with_runtime(
         )),
         Arc::new(CalculatorTool::new()),
         Arc::new(WeatherTool::new()),
+        Arc::new(CanvasTool::new(canvas_store.unwrap_or_default())),
     ];
+
+    // Register discord_search if discord_history channel is configured
+    if root_config.channels_config.discord_history.is_some() {
+        match crate::memory::SqliteMemory::new_named(workspace_dir, "discord") {
+            Ok(discord_mem) => {
+                tool_arcs.push(Arc::new(DiscordSearchTool::new(Arc::new(discord_mem))));
+            }
+            Err(e) => {
+                tracing::warn!("discord_search: failed to open discord.db: {e}");
+            }
+        }
+    }
 
     if matches!(
         root_config.skills.prompt_injection_mode,
@@ -426,6 +491,7 @@ pub fn all_tools_with_runtime(
         tool_arcs.push(Arc::new(WebSearchTool::new_with_config(
             root_config.web_search.provider.clone(),
             root_config.web_search.brave_api_key.clone(),
+            root_config.web_search.searxng_instance_url.clone(),
             root_config.web_search.max_results,
             root_config.web_search.timeout_secs,
             root_config.config_path.clone(),
@@ -547,6 +613,18 @@ pub fn all_tools_with_runtime(
     tool_arcs.push(Arc::new(ScreenshotTool::new(security.clone())));
     tool_arcs.push(Arc::new(ImageInfoTool::new(security.clone())));
 
+    // Session-to-session messaging tools (always available when sessions dir exists)
+    if let Ok(session_store) = crate::channels::session_store::SessionStore::new(workspace_dir) {
+        let backend: Arc<dyn crate::channels::session_backend::SessionBackend> =
+            Arc::new(session_store);
+        tool_arcs.push(Arc::new(SessionsListTool::new(backend.clone())));
+        tool_arcs.push(Arc::new(SessionsHistoryTool::new(
+            backend.clone(),
+            security.clone(),
+        )));
+        tool_arcs.push(Arc::new(SessionsSendTool::new(backend, security.clone())));
+    }
+
     // LinkedIn integration (config-gated)
     if root_config.linkedin.enabled {
         tool_arcs.push(Arc::new(LinkedInTool::new(
@@ -578,6 +656,11 @@ pub fn all_tools_with_runtime(
         }
     }
 
+    // Emoji reaction tool — always registered; channel map populated later by start_channels.
+    let reaction_tool = ReactionTool::new(security.clone());
+    let reaction_handle = reaction_tool.channel_map_handle();
+    tool_arcs.push(Arc::new(reaction_tool));
+
     // Microsoft 365 Graph API integration
     if root_config.microsoft365.enabled {
         let ms_cfg = &root_config.microsoft365;
@@ -604,7 +687,11 @@ pub fn all_tools_with_runtime(
                 tracing::error!(
                     "microsoft365: client_credentials auth_flow requires a non-empty client_secret"
                 );
-                return (boxed_registry_from_arcs(tool_arcs), None);
+                return (
+                    boxed_registry_from_arcs(tool_arcs),
+                    None,
+                    Some(reaction_handle),
+                );
             }
 
             let resolved = microsoft365::types::Microsoft365ResolvedConfig {
@@ -788,7 +875,11 @@ pub fn all_tools_with_runtime(
         }
     }
 
-    (boxed_registry_from_arcs(tool_arcs), delegate_handle)
+    (
+        boxed_registry_from_arcs(tool_arcs),
+        delegate_handle,
+        Some(reaction_handle),
+    )
 }
 
 #[cfg(test)]
@@ -832,7 +923,7 @@ mod tests {
         let http = crate::config::HttpRequestConfig::default();
         let cfg = test_config(&tmp);
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(Config::default()),
             &security,
             mem,
@@ -845,6 +936,7 @@ mod tests {
             &HashMap::new(),
             None,
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(!names.contains(&"browser_open"));
@@ -874,7 +966,7 @@ mod tests {
         let http = crate::config::HttpRequestConfig::default();
         let cfg = test_config(&tmp);
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(Config::default()),
             &security,
             mem,
@@ -887,6 +979,7 @@ mod tests {
             &HashMap::new(),
             None,
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(names.contains(&"browser_open"));
@@ -1027,7 +1120,7 @@ mod tests {
             },
         );
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(Config::default()),
             &security,
             mem,
@@ -1040,6 +1133,7 @@ mod tests {
             &agents,
             Some("delegate-test-credential"),
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(names.contains(&"delegate"));
@@ -1060,7 +1154,7 @@ mod tests {
         let http = crate::config::HttpRequestConfig::default();
         let cfg = test_config(&tmp);
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(Config::default()),
             &security,
             mem,
@@ -1073,6 +1167,7 @@ mod tests {
             &HashMap::new(),
             None,
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(!names.contains(&"delegate"));
@@ -1094,7 +1189,7 @@ mod tests {
         let mut cfg = test_config(&tmp);
         cfg.skills.prompt_injection_mode = crate::config::SkillsPromptInjectionMode::Compact;
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(cfg.clone()),
             &security,
             mem,
@@ -1107,6 +1202,7 @@ mod tests {
             &HashMap::new(),
             None,
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(names.contains(&"read_skill"));
@@ -1128,7 +1224,7 @@ mod tests {
         let mut cfg = test_config(&tmp);
         cfg.skills.prompt_injection_mode = crate::config::SkillsPromptInjectionMode::Full;
 
-        let (tools, _) = all_tools(
+        let (tools, _, _) = all_tools(
             Arc::new(cfg.clone()),
             &security,
             mem,
@@ -1141,6 +1237,7 @@ mod tests {
             &HashMap::new(),
             None,
             &cfg,
+            None,
         );
         let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
         assert!(!names.contains(&"read_skill"));

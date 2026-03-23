@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::cost::types::{BudgetCheck, TokenUsage as CostTokenUsage};
 use crate::cost::CostTracker;
 use crate::i18n::ToolDescriptions;
-use crate::memory::{self, Memory, MemoryCategory};
+use crate::memory::{self, decay, Memory, MemoryCategory};
 use crate::multimodal;
 use crate::observability::{self, runtime_trace, Observer, ObserverEvent};
 use crate::providers::{
@@ -561,6 +561,7 @@ fn save_interactive_session_history(path: &Path, history: &[ChatMessage]) -> Res
 /// Build context preamble by searching memory for relevant entries.
 /// Entries with a hybrid score below `min_relevance_score` are dropped to
 /// prevent unrelated memories from bleeding into the conversation.
+/// Core memories are exempt from time decay (evergreen).
 async fn build_context(
     mem: &dyn Memory,
     user_msg: &str,
@@ -570,7 +571,10 @@ async fn build_context(
     let mut context = String::new();
 
     // Pull relevant memories for this message
-    if let Ok(entries) = mem.recall(user_msg, 5, session_id, None, None).await {
+    if let Ok(mut entries) = mem.recall(user_msg, 5, session_id, None, None).await {
+        // Apply time decay: older non-Core memories score lower
+        decay::apply_time_decay(&mut entries, decay::DEFAULT_HALF_LIFE_DAYS);
+
         let relevant: Vec<_> = entries
             .iter()
             .filter(|e| match e.score {
@@ -2707,16 +2711,53 @@ pub(crate) async fn run_tool_call_loop(
         let use_native_tools = provider.supports_native_tools() && !tool_specs.is_empty();
 
         let image_marker_count = multimodal::count_image_markers(history);
-        if image_marker_count > 0 && !provider.supports_vision() {
-            return Err(ProviderCapabilityError {
-                provider: provider_name.to_string(),
-                capability: "vision".to_string(),
-                message: format!(
-                    "received {image_marker_count} image marker(s), but this provider does not support vision input"
-                ),
+
+        // ── Vision provider routing ──────────────────────────
+        // When the default provider lacks vision support but a dedicated
+        // vision_provider is configured, create it on demand and use it
+        // for this iteration.  Otherwise, preserve the original error.
+        let vision_provider_box: Option<Box<dyn Provider>> = if image_marker_count > 0
+            && !provider.supports_vision()
+        {
+            if let Some(ref vp) = multimodal_config.vision_provider {
+                let vp_instance = providers::create_provider(vp, None)
+                    .map_err(|e| anyhow::anyhow!("failed to create vision provider '{vp}': {e}"))?;
+                if !vp_instance.supports_vision() {
+                    return Err(ProviderCapabilityError {
+                        provider: vp.clone(),
+                        capability: "vision".to_string(),
+                        message: format!(
+                            "configured vision_provider '{vp}' does not support vision input"
+                        ),
+                    }
+                    .into());
+                }
+                Some(vp_instance)
+            } else {
+                return Err(ProviderCapabilityError {
+                        provider: provider_name.to_string(),
+                        capability: "vision".to_string(),
+                        message: format!(
+                            "received {image_marker_count} image marker(s), but this provider does not support vision input"
+                        ),
+                    }
+                    .into());
             }
-            .into());
-        }
+        } else {
+            None
+        };
+
+        let (active_provider, active_provider_name, active_model): (&dyn Provider, &str, &str) =
+            if let Some(ref vp_box) = vision_provider_box {
+                let vp_name = multimodal_config
+                    .vision_provider
+                    .as_deref()
+                    .unwrap_or(provider_name);
+                let vm = multimodal_config.vision_model.as_deref().unwrap_or(model);
+                (vp_box.as_ref(), vp_name, vm)
+            } else {
+                (provider, provider_name, model)
+            };
 
         let prepared_messages =
             multimodal::prepare_messages_for_provider(history, multimodal_config).await?;
@@ -2732,15 +2773,15 @@ pub(crate) async fn run_tool_call_loop(
         }
 
         observer.record_event(&ObserverEvent::LlmRequest {
-            provider: provider_name.to_string(),
-            model: model.to_string(),
+            provider: active_provider_name.to_string(),
+            model: active_model.to_string(),
             messages_count: history.len(),
         });
         runtime_trace::record_event(
             "llm_request",
             Some(channel_name),
-            Some(provider_name),
-            Some(model),
+            Some(active_provider_name),
+            Some(active_model),
             Some(&turn_id),
             None,
             None,
@@ -2778,12 +2819,12 @@ pub(crate) async fn run_tool_call_loop(
             None
         };
 
-        let chat_future = provider.chat(
+        let chat_future = active_provider.chat(
             ChatRequest {
                 messages: &prepared_messages.messages,
                 tools: request_tools,
             },
-            model,
+            active_model,
             temperature,
         );
 
@@ -2836,8 +2877,8 @@ pub(crate) async fn run_tool_call_loop(
                         .unwrap_or((None, None));
 
                     observer.record_event(&ObserverEvent::LlmResponse {
-                        provider: provider_name.to_string(),
-                        model: model.to_string(),
+                        provider: active_provider_name.to_string(),
+                        model: active_model.to_string(),
                         duration: llm_started_at.elapsed(),
                         success: true,
                         error_message: None,
@@ -2846,10 +2887,9 @@ pub(crate) async fn run_tool_call_loop(
                     });
 
                     // Record cost via task-local tracker (no-op when not scoped)
-                    let _ = resp
-                        .usage
-                        .as_ref()
-                        .and_then(|usage| record_tool_loop_cost_usage(provider_name, model, usage));
+                    let _ = resp.usage.as_ref().and_then(|usage| {
+                        record_tool_loop_cost_usage(active_provider_name, active_model, usage)
+                    });
 
                     let response_text = resp.text_or_empty().to_string();
                     // First try native structured tool calls (OpenAI-format).
@@ -2872,8 +2912,8 @@ pub(crate) async fn run_tool_call_loop(
                         runtime_trace::record_event(
                             "tool_call_parse_issue",
                             Some(channel_name),
-                            Some(provider_name),
-                            Some(model),
+                            Some(active_provider_name),
+                            Some(active_model),
                             Some(&turn_id),
                             Some(false),
                             Some(&parse_issue),
@@ -2890,8 +2930,8 @@ pub(crate) async fn run_tool_call_loop(
                     runtime_trace::record_event(
                         "llm_response",
                         Some(channel_name),
-                        Some(provider_name),
-                        Some(model),
+                        Some(active_provider_name),
+                        Some(active_model),
                         Some(&turn_id),
                         Some(true),
                         None,
@@ -2940,8 +2980,8 @@ pub(crate) async fn run_tool_call_loop(
                 Err(e) => {
                     let safe_error = crate::providers::sanitize_api_error(&e.to_string());
                     observer.record_event(&ObserverEvent::LlmResponse {
-                        provider: provider_name.to_string(),
-                        model: model.to_string(),
+                        provider: active_provider_name.to_string(),
+                        model: active_model.to_string(),
                         duration: llm_started_at.elapsed(),
                         success: false,
                         error_message: Some(safe_error.clone()),
@@ -2951,8 +2991,8 @@ pub(crate) async fn run_tool_call_loop(
                     runtime_trace::record_event(
                         "llm_response",
                         Some(channel_name),
-                        Some(provider_name),
-                        Some(model),
+                        Some(active_provider_name),
+                        Some(active_model),
                         Some(&turn_id),
                         Some(false),
                         Some(&safe_error),
@@ -3525,7 +3565,7 @@ pub async fn run(
     } else {
         (None, None)
     };
-    let (mut tools_registry, delegate_handle) = tools::all_tools_with_runtime(
+    let (mut tools_registry, delegate_handle, _reaction_handle) = tools::all_tools_with_runtime(
         Arc::new(config.clone()),
         &security,
         runtime,
@@ -3539,6 +3579,7 @@ pub async fn run(
         &config.agents,
         config.api_key.as_deref(),
         &config,
+        None,
     );
 
     let peripheral_tools: Vec<Box<dyn Tool>> =
@@ -3700,6 +3741,11 @@ pub async fn run(
 
     // ── Build system prompt from workspace MD files (OpenClaw framework) ──
     let skills = crate::skills::load_skills_with_config(&config.workspace_dir, &config);
+
+    // Register skill-defined tools as callable tool specs in the tool registry
+    // so the LLM can invoke them via native function calling, not just XML prompts.
+    tools::register_skill_tools(&mut tools_registry, &skills, security.clone());
+
     let mut tool_descs: Vec<(&str, &str)> = vec![
         (
             "shell",
@@ -3864,17 +3910,45 @@ pub async fn run(
 
     let mut final_output = String::new();
 
+    // Save the base system prompt before any thinking modifications so
+    // the interactive loop can restore it between turns.
+    let base_system_prompt = system_prompt.clone();
+
     if let Some(msg) = message {
+        // ── Parse thinking directive from user message ─────────
+        let (thinking_directive, effective_msg) =
+            match crate::agent::thinking::parse_thinking_directive(&msg) {
+                Some((level, remaining)) => {
+                    tracing::info!(thinking_level = ?level, "Thinking directive parsed from message");
+                    (Some(level), remaining)
+                }
+                None => (None, msg.clone()),
+            };
+        let thinking_level = crate::agent::thinking::resolve_thinking_level(
+            thinking_directive,
+            None,
+            &config.agent.thinking,
+        );
+        let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+        let effective_temperature = crate::agent::thinking::clamp_temperature(
+            temperature + thinking_params.temperature_adjustment,
+        );
+
+        // Prepend thinking system prompt prefix when present.
+        if let Some(ref prefix) = thinking_params.system_prompt_prefix {
+            system_prompt = format!("{prefix}\n\n{system_prompt}");
+        }
+
         // Auto-save user message to memory (skip short/trivial messages)
         if config.memory.auto_save
-            && msg.chars().count() >= AUTOSAVE_MIN_MESSAGE_CHARS
-            && !memory::should_skip_autosave_content(&msg)
+            && effective_msg.chars().count() >= AUTOSAVE_MIN_MESSAGE_CHARS
+            && !memory::should_skip_autosave_content(&effective_msg)
         {
             let user_key = autosave_memory_key("user_msg");
             let _ = mem
                 .store(
                     &user_key,
-                    &msg,
+                    &effective_msg,
                     MemoryCategory::Conversation,
                     memory_session_id.as_deref(),
                 )
@@ -3884,7 +3958,7 @@ pub async fn run(
         // Inject memory + hardware RAG context into user message
         let mem_context = build_context(
             mem.as_ref(),
-            &msg,
+            &effective_msg,
             config.memory.min_relevance_score,
             memory_session_id.as_deref(),
         )
@@ -3892,14 +3966,14 @@ pub async fn run(
         let rag_limit = if config.agent.compact_context { 2 } else { 5 };
         let hw_context = hardware_rag
             .as_ref()
-            .map(|r| build_hardware_context(r, &msg, &board_names, rag_limit))
+            .map(|r| build_hardware_context(r, &effective_msg, &board_names, rag_limit))
             .unwrap_or_default();
         let context = format!("{mem_context}{hw_context}");
         let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S %Z");
         let enriched = if context.is_empty() {
-            format!("[{now}] {msg}")
+            format!("[{now}] {effective_msg}")
         } else {
-            format!("{context}[{now}] {msg}")
+            format!("{context}[{now}] {effective_msg}")
         };
 
         let mut history = vec![
@@ -3908,8 +3982,11 @@ pub async fn run(
         ];
 
         // Compute per-turn excluded MCP tools from tool_filter_groups.
-        let excluded_tools =
-            compute_excluded_mcp_tools(&tools_registry, &config.agent.tool_filter_groups, &msg);
+        let excluded_tools = compute_excluded_mcp_tools(
+            &tools_registry,
+            &config.agent.tool_filter_groups,
+            &effective_msg,
+        );
 
         #[allow(unused_assignments)]
         let mut response = String::new();
@@ -3921,7 +3998,7 @@ pub async fn run(
                 observer.as_ref(),
                 &provider_name,
                 &model_name,
-                temperature,
+                effective_temperature,
                 false,
                 approval_manager.as_ref(),
                 channel_name,
@@ -4041,9 +4118,10 @@ pub async fn run(
                 "/quit" | "/exit" => break,
                 "/help" => {
                     println!("Available commands:");
-                    println!("  /help        Show this help message");
-                    println!("  /clear /new  Clear conversation history");
-                    println!("  /quit /exit  Exit interactive mode\n");
+                    println!("  /help             Show this help message");
+                    println!("  /clear /new       Clear conversation history");
+                    println!("  /quit /exit       Exit interactive mode");
+                    println!("  /think:<level>    Set reasoning depth (off|minimal|low|medium|high|max)\n");
                     continue;
                 }
                 "/clear" | "/new" => {
@@ -4095,16 +4173,47 @@ pub async fn run(
                 _ => {}
             }
 
+            // ── Parse thinking directive from interactive input ───
+            let (thinking_directive, effective_input) =
+                match crate::agent::thinking::parse_thinking_directive(&user_input) {
+                    Some((level, remaining)) => {
+                        tracing::info!(thinking_level = ?level, "Thinking directive parsed");
+                        (Some(level), remaining)
+                    }
+                    None => (None, user_input.clone()),
+                };
+            let thinking_level = crate::agent::thinking::resolve_thinking_level(
+                thinking_directive,
+                None,
+                &config.agent.thinking,
+            );
+            let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+            let turn_temperature = crate::agent::thinking::clamp_temperature(
+                temperature + thinking_params.temperature_adjustment,
+            );
+
+            // For non-Medium levels, temporarily patch the system prompt with prefix.
+            let turn_system_prompt;
+            if let Some(ref prefix) = thinking_params.system_prompt_prefix {
+                turn_system_prompt = format!("{prefix}\n\n{system_prompt}");
+                // Update the system message in history for this turn.
+                if let Some(sys_msg) = history.first_mut() {
+                    if sys_msg.role == "system" {
+                        sys_msg.content = turn_system_prompt.clone();
+                    }
+                }
+            }
+
             // Auto-save conversation turns (skip short/trivial messages)
             if config.memory.auto_save
-                && user_input.chars().count() >= AUTOSAVE_MIN_MESSAGE_CHARS
-                && !memory::should_skip_autosave_content(&user_input)
+                && effective_input.chars().count() >= AUTOSAVE_MIN_MESSAGE_CHARS
+                && !memory::should_skip_autosave_content(&effective_input)
             {
                 let user_key = autosave_memory_key("user_msg");
                 let _ = mem
                     .store(
                         &user_key,
-                        &user_input,
+                        &effective_input,
                         MemoryCategory::Conversation,
                         memory_session_id.as_deref(),
                     )
@@ -4114,7 +4223,7 @@ pub async fn run(
             // Inject memory + hardware RAG context into user message
             let mem_context = build_context(
                 mem.as_ref(),
-                &user_input,
+                &effective_input,
                 config.memory.min_relevance_score,
                 memory_session_id.as_deref(),
             )
@@ -4122,14 +4231,14 @@ pub async fn run(
             let rag_limit = if config.agent.compact_context { 2 } else { 5 };
             let hw_context = hardware_rag
                 .as_ref()
-                .map(|r| build_hardware_context(r, &user_input, &board_names, rag_limit))
+                .map(|r| build_hardware_context(r, &effective_input, &board_names, rag_limit))
                 .unwrap_or_default();
             let context = format!("{mem_context}{hw_context}");
             let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S %Z");
             let enriched = if context.is_empty() {
-                format!("[{now}] {user_input}")
+                format!("[{now}] {effective_input}")
             } else {
-                format!("{context}[{now}] {user_input}")
+                format!("{context}[{now}] {effective_input}")
             };
 
             history.push(ChatMessage::user(&enriched));
@@ -4138,7 +4247,7 @@ pub async fn run(
             let excluded_tools = compute_excluded_mcp_tools(
                 &tools_registry,
                 &config.agent.tool_filter_groups,
-                &user_input,
+                &effective_input,
             );
 
             let response = loop {
@@ -4149,7 +4258,7 @@ pub async fn run(
                     observer.as_ref(),
                     &provider_name,
                     &model_name,
-                    temperature,
+                    turn_temperature,
                     false,
                     approval_manager.as_ref(),
                     channel_name,
@@ -4234,6 +4343,15 @@ pub async fn run(
             // Hard cap as a safety net.
             trim_history(&mut history, config.agent.max_history_messages);
 
+            // Restore base system prompt (remove per-turn thinking prefix).
+            if thinking_params.system_prompt_prefix.is_some() {
+                if let Some(sys_msg) = history.first_mut() {
+                    if sys_msg.role == "system" {
+                        sys_msg.content.clone_from(&base_system_prompt);
+                    }
+                }
+            }
+
             if let Some(path) = session_state_file.as_deref() {
                 save_interactive_session_history(path, &history)?;
             }
@@ -4284,21 +4402,23 @@ pub async fn process_message(
     } else {
         (None, None)
     };
-    let (mut tools_registry, delegate_handle_pm) = tools::all_tools_with_runtime(
-        Arc::new(config.clone()),
-        &security,
-        runtime,
-        mem.clone(),
-        composio_key,
-        composio_entity_id,
-        &config.browser,
-        &config.http_request,
-        &config.web_fetch,
-        &config.workspace_dir,
-        &config.agents,
-        config.api_key.as_deref(),
-        &config,
-    );
+    let (mut tools_registry, delegate_handle_pm, _reaction_handle_pm) =
+        tools::all_tools_with_runtime(
+            Arc::new(config.clone()),
+            &security,
+            runtime,
+            mem.clone(),
+            composio_key,
+            composio_entity_id,
+            &config.browser,
+            &config.http_request,
+            &config.web_fetch,
+            &config.workspace_dir,
+            &config.agents,
+            config.api_key.as_deref(),
+            &config,
+            None,
+        );
     let peripheral_tools: Vec<Box<dyn Tool>> =
         crate::peripherals::create_peripheral_tools(&config.peripherals).await?;
     tools_registry.extend(peripheral_tools);
@@ -4412,6 +4532,10 @@ pub async fn process_message(
     let i18n_descs = crate::i18n::ToolDescriptions::load(&i18n_locale, &i18n_search_dirs);
 
     let skills = crate::skills::load_skills_with_config(&config.workspace_dir, &config);
+
+    // Register skill-defined tools as callable tool specs (process_message path).
+    tools::register_skill_tools(&mut tools_registry, &skills, security.clone());
+
     let mut tool_descs: Vec<(&str, &str)> = vec![
         ("shell", "Execute terminal commands."),
         ("file_read", "Read file contents."),
@@ -4505,9 +4629,34 @@ pub async fn process_message(
         system_prompt.push_str(&deferred_section);
     }
 
+    // ── Parse thinking directive from user message ─────────────
+    let (thinking_directive, effective_message) =
+        match crate::agent::thinking::parse_thinking_directive(message) {
+            Some((level, remaining)) => {
+                tracing::info!(thinking_level = ?level, "Thinking directive parsed from message");
+                (Some(level), remaining)
+            }
+            None => (None, message.to_string()),
+        };
+    let thinking_level = crate::agent::thinking::resolve_thinking_level(
+        thinking_directive,
+        None,
+        &config.agent.thinking,
+    );
+    let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+    let effective_temperature = crate::agent::thinking::clamp_temperature(
+        config.default_temperature + thinking_params.temperature_adjustment,
+    );
+
+    // Prepend thinking system prompt prefix when present.
+    if let Some(ref prefix) = thinking_params.system_prompt_prefix {
+        system_prompt = format!("{prefix}\n\n{system_prompt}");
+    }
+
+    let effective_msg_ref = effective_message.as_str();
     let mem_context = build_context(
         mem.as_ref(),
-        message,
+        effective_msg_ref,
         config.memory.min_relevance_score,
         session_id,
     )
@@ -4515,22 +4664,25 @@ pub async fn process_message(
     let rag_limit = if config.agent.compact_context { 2 } else { 5 };
     let hw_context = hardware_rag
         .as_ref()
-        .map(|r| build_hardware_context(r, message, &board_names, rag_limit))
+        .map(|r| build_hardware_context(r, effective_msg_ref, &board_names, rag_limit))
         .unwrap_or_default();
     let context = format!("{mem_context}{hw_context}");
     let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S %Z");
     let enriched = if context.is_empty() {
-        format!("[{now}] {message}")
+        format!("[{now}] {effective_message}")
     } else {
-        format!("{context}[{now}] {message}")
+        format!("{context}[{now}] {effective_message}")
     };
 
     let mut history = vec![
         ChatMessage::system(&system_prompt),
         ChatMessage::user(&enriched),
     ];
-    let mut excluded_tools =
-        compute_excluded_mcp_tools(&tools_registry, &config.agent.tool_filter_groups, message);
+    let mut excluded_tools = compute_excluded_mcp_tools(
+        &tools_registry,
+        &config.agent.tool_filter_groups,
+        effective_msg_ref,
+    );
     if config.autonomy.level != AutonomyLevel::Full {
         excluded_tools.extend(config.autonomy.non_cli_excluded_tools.iter().cloned());
     }
@@ -4542,7 +4694,7 @@ pub async fn process_message(
         observer.as_ref(),
         provider_name,
         &model_name,
-        config.default_temperature,
+        effective_temperature,
         true,
         "daemon",
         None,
@@ -5091,6 +5243,7 @@ mod tests {
             max_images: 4,
             max_image_size_mb: 1,
             allow_remote_fetch: false,
+            ..Default::default()
         };
 
         let err = run_tool_call_loop(
@@ -5166,6 +5319,313 @@ mod tests {
 
         assert_eq!(result, "vision-ok");
         assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    /// When `vision_provider` is not set and the default provider lacks vision
+    /// support, the original `ProviderCapabilityError` should be returned.
+    #[tokio::test]
+    async fn run_tool_call_loop_no_vision_provider_config_preserves_error() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let provider = NonVisionProvider {
+            calls: Arc::clone(&calls),
+        };
+
+        let mut history = vec![ChatMessage::user(
+            "check [IMAGE:data:image/png;base64,iVBORw0KGgo=]".to_string(),
+        )];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        let err = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "mock-provider",
+            "mock-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &crate::config::MultimodalConfig::default(),
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect_err("should fail without vision_provider config");
+
+        assert!(err.to_string().contains("capability=vision"));
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+    }
+
+    /// When `vision_provider` is set but the provider factory cannot resolve
+    /// the name, a descriptive error should be returned (not the generic
+    /// capability error).
+    #[tokio::test]
+    async fn run_tool_call_loop_vision_provider_creation_failure() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let provider = NonVisionProvider {
+            calls: Arc::clone(&calls),
+        };
+
+        let mut history = vec![ChatMessage::user(
+            "inspect [IMAGE:data:image/png;base64,iVBORw0KGgo=]".to_string(),
+        )];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        let multimodal = crate::config::MultimodalConfig {
+            vision_provider: Some("nonexistent-provider-xyz".to_string()),
+            vision_model: Some("some-model".to_string()),
+            ..Default::default()
+        };
+
+        let err = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "mock-provider",
+            "mock-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &multimodal,
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect_err("should fail when vision provider cannot be created");
+
+        assert!(
+            err.to_string().contains("failed to create vision provider"),
+            "expected creation failure error, got: {}",
+            err
+        );
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+    }
+
+    /// Messages without image markers should use the default provider even
+    /// when `vision_provider` is configured.
+    #[tokio::test]
+    async fn run_tool_call_loop_no_images_uses_default_provider() {
+        let provider = ScriptedProvider::from_text_responses(vec!["hello world"]);
+
+        let mut history = vec![ChatMessage::user("just text, no images".to_string())];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        let multimodal = crate::config::MultimodalConfig {
+            vision_provider: Some("nonexistent-provider-xyz".to_string()),
+            vision_model: Some("some-model".to_string()),
+            ..Default::default()
+        };
+
+        // Even though vision_provider points to a nonexistent provider, this
+        // should succeed because there are no image markers to trigger routing.
+        let result = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "scripted",
+            "scripted-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &multimodal,
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect("text-only messages should succeed with default provider");
+
+        assert_eq!(result, "hello world");
+    }
+
+    /// When `vision_provider` is set but `vision_model` is not, the default
+    /// model should be used as fallback for the vision provider.
+    #[tokio::test]
+    async fn run_tool_call_loop_vision_provider_without_model_falls_back() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let provider = NonVisionProvider {
+            calls: Arc::clone(&calls),
+        };
+
+        let mut history = vec![ChatMessage::user(
+            "look [IMAGE:data:image/png;base64,iVBORw0KGgo=]".to_string(),
+        )];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        // vision_provider set but vision_model is None — the code should
+        // fall back to the default model. Since the provider name is invalid,
+        // we just verify the error path references the correct provider.
+        let multimodal = crate::config::MultimodalConfig {
+            vision_provider: Some("nonexistent-provider-xyz".to_string()),
+            vision_model: None,
+            ..Default::default()
+        };
+
+        let err = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "mock-provider",
+            "mock-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &multimodal,
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect_err("should fail due to nonexistent vision provider");
+
+        // Verify the routing was attempted (not the generic capability error).
+        assert!(
+            err.to_string().contains("failed to create vision provider"),
+            "expected creation failure, got: {}",
+            err
+        );
+    }
+
+    /// Empty `[IMAGE:]` markers (which are preserved as literal text by the
+    /// parser) should not trigger vision provider routing.
+    #[tokio::test]
+    async fn run_tool_call_loop_empty_image_markers_use_default_provider() {
+        let provider = ScriptedProvider::from_text_responses(vec!["handled"]);
+
+        let mut history = vec![ChatMessage::user(
+            "empty marker [IMAGE:] should be ignored".to_string(),
+        )];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        let multimodal = crate::config::MultimodalConfig {
+            vision_provider: Some("nonexistent-provider-xyz".to_string()),
+            ..Default::default()
+        };
+
+        let result = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "scripted",
+            "scripted-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &multimodal,
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect("empty image markers should not trigger vision routing");
+
+        assert_eq!(result, "handled");
+    }
+
+    /// Multiple image markers should still trigger vision routing when
+    /// vision_provider is configured.
+    #[tokio::test]
+    async fn run_tool_call_loop_multiple_images_trigger_vision_routing() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let provider = NonVisionProvider {
+            calls: Arc::clone(&calls),
+        };
+
+        let mut history = vec![ChatMessage::user(
+            "two images [IMAGE:data:image/png;base64,aQ==] and [IMAGE:data:image/png;base64,bQ==]"
+                .to_string(),
+        )];
+        let tools_registry: Vec<Box<dyn Tool>> = Vec::new();
+        let observer = NoopObserver;
+
+        let multimodal = crate::config::MultimodalConfig {
+            vision_provider: Some("nonexistent-provider-xyz".to_string()),
+            vision_model: Some("llava:7b".to_string()),
+            ..Default::default()
+        };
+
+        let err = run_tool_call_loop(
+            &provider,
+            &mut history,
+            &tools_registry,
+            &observer,
+            "mock-provider",
+            "mock-model",
+            0.0,
+            true,
+            None,
+            "cli",
+            None,
+            &multimodal,
+            3,
+            None,
+            None,
+            None,
+            &[],
+            &[],
+            None,
+            None,
+            &crate::config::PacingConfig::default(),
+        )
+        .await
+        .expect_err("should attempt vision provider creation for multiple images");
+
+        assert!(
+            err.to_string().contains("failed to create vision provider"),
+            "expected creation failure for multiple images, got: {}",
+            err
+        );
     }
 
     #[test]

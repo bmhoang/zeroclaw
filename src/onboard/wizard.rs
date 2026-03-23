@@ -173,6 +173,7 @@ pub async fn run_wizard(force: bool) -> Result<Config> {
         http_request: crate::config::HttpRequestConfig::default(),
         multimodal: crate::config::MultimodalConfig::default(),
         web_fetch: crate::config::WebFetchConfig::default(),
+        link_enricher: crate::config::LinkEnricherConfig::default(),
         text_browser: crate::config::TextBrowserConfig::default(),
         web_search: crate::config::WebSearchConfig::default(),
         project_intel: crate::config::ProjectIntelConfig::default(),
@@ -420,9 +421,17 @@ fn memory_config_defaults_for_backend(backend: &str) -> MemoryConfig {
         snapshot_enabled: false,
         snapshot_on_hygiene: false,
         auto_hydrate: true,
+        retrieval_stages: vec!["cache".into(), "fts".into(), "vector".into()],
+        rerank_enabled: false,
+        rerank_threshold: 5,
+        fts_early_return_score: 0.85,
+        default_namespace: "default".into(),
+        conflict_threshold: 0.85,
+        audit_enabled: false,
+        audit_retention_days: 30,
+        policy: crate::config::MemoryPolicyConfig::default(),
         sqlite_open_timeout_secs: None,
         qdrant: crate::config::QdrantConfig::default(),
-        mem0: crate::config::schema::Mem0Config::default(),
     }
 }
 
@@ -597,6 +606,7 @@ async fn run_quick_setup_with_home(
         http_request: crate::config::HttpRequestConfig::default(),
         multimodal: crate::config::MultimodalConfig::default(),
         web_fetch: crate::config::WebFetchConfig::default(),
+        link_enricher: crate::config::LinkEnricherConfig::default(),
         text_browser: crate::config::TextBrowserConfig::default(),
         web_search: crate::config::WebSearchConfig::default(),
         project_intel: crate::config::ProjectIntelConfig::default(),
@@ -4185,6 +4195,7 @@ fn setup_channels() -> Result<ChannelsConfig> {
                     device_id: detected_device_id,
                     room_id,
                     allowed_users,
+                    allowed_rooms: vec![],
                     interrupt_on_new_message: false,
                 });
             }
