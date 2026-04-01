@@ -27,6 +27,9 @@ use crate::security::SecurityPolicy;
 use async_trait::async_trait;
 use std::sync::Arc;
 
+/// Type alias for a path-extraction closure used by [`PathGuardedTool`].
+type PathExtractor = dyn Fn(&serde_json::Value) -> Option<String> + Send + Sync;
+
 // ── RateLimitedTool ───────────────────────────────────────────────────────────
 
 /// Wraps any [`Tool`] and enforces the [`SecurityPolicy`] rate limit.
@@ -96,7 +99,7 @@ pub struct PathGuardedTool<T: Tool> {
     inner: T,
     security: Arc<SecurityPolicy>,
     /// Optional override: extract a path string from the args JSON.
-    extractor: Option<Box<dyn Fn(&serde_json::Value) -> Option<String> + Send + Sync>>,
+    extractor: Option<Box<PathExtractor>>,
 }
 
 impl<T: Tool> PathGuardedTool<T> {
@@ -117,7 +120,7 @@ impl<T: Tool> PathGuardedTool<T> {
         self
     }
 
-    fn extract_path_string<'a>(&self, args: &'a serde_json::Value) -> Option<String> {
+    fn extract_path_string(&self, args: &serde_json::Value) -> Option<String> {
         if let Some(ref f) = self.extractor {
             return f(args);
         }
@@ -299,7 +302,11 @@ mod tests {
             .unwrap();
         assert!(!result.success);
         assert!(result.error.unwrap().contains("Path blocked"));
-        assert_eq!(counter.load(Ordering::SeqCst), 0, "inner must not be called");
+        assert_eq!(
+            counter.load(Ordering::SeqCst),
+            0,
+            "inner must not be called"
+        );
     }
 
     #[tokio::test]
@@ -318,8 +325,12 @@ mod tests {
     #[tokio::test]
     async fn path_guard_custom_extractor() {
         let (inner, counter) = CountingTool::new();
-        let tool = PathGuardedTool::new(inner, policy(AutonomyLevel::Full))
-            .with_extractor(|args| args.get("target").and_then(|v| v.as_str()).map(String::from));
+        let tool =
+            PathGuardedTool::new(inner, policy(AutonomyLevel::Full)).with_extractor(|args| {
+                args.get("target")
+                    .and_then(|v| v.as_str())
+                    .map(String::from)
+            });
         let result = tool
             .execute(serde_json::json!({"target": "/etc/shadow"}))
             .await

@@ -266,7 +266,6 @@ phone_number_id = "123456789012345"
 verify_token = "your-verify-token"
 app_secret = "your-app-secret"     # optional but recommended
 allowed_numbers = ["*"]
-interrupt_on_new_message = false   # optional: cancel in-flight same-sender same-chat request
 ```
 
 WhatsApp Web mode:

@@ -830,18 +830,16 @@ fn has_supervised_channels(config: &Config) -> bool {
 }
 
 async fn run_mqtt_sop_listener(config: &crate::config::MqttConfig) -> Result<()> {
-    use std::sync::{Arc, Mutex};
-    use crate::sop::{SopEngine, SopAuditLogger};
     use crate::config::SopConfig;
     use crate::memory::NoneMemory;
+    use crate::sop::{SopAuditLogger, SopEngine};
+    use std::sync::{Arc, Mutex};
 
     // Initialize SOP engine
     let engine = Arc::new(Mutex::new(SopEngine::new(SopConfig::default())));
 
     // Initialize SOP audit logger with NoneMemory (MQTT listener is headless)
-    let audit = Arc::new(SopAuditLogger::new(
-        Arc::new(NoneMemory)
-    ));
+    let audit = Arc::new(SopAuditLogger::new(Arc::new(NoneMemory)));
 
     // Validate MQTT config and run the listener
     config.validate()?;
@@ -953,17 +951,13 @@ mod tests {
         let mut config = Config::default();
         config.channels_config.mattermost = Some(crate::config::schema::MattermostConfig {
             url: "https://mattermost.example.com".into(),
-            bot_token: Some("token".into()),
+            bot_token: "token".into(),
             channel_id: Some("channel-id".into()),
-            channel_ids: vec![],
             allowed_users: vec!["*".into()],
             thread_replies: Some(true),
             mention_only: Some(false),
             interrupt_on_new_message: false,
             proxy_url: None,
-            listen_mode: None,
-            bot_id: None,
-            bot_password: None,
         });
         assert!(has_supervised_channels(&config));
     }
