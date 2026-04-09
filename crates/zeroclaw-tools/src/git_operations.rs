@@ -1,8 +1,9 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::autonomy::AutonomyLevel;
+use zeroclaw_config::policy::SecurityPolicy;
 
 /// Git operations tool for structured repository management.
 /// Provides safe, parsed git operations with JSON output.
@@ -664,8 +665,8 @@ impl Tool for GitOperationsTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_tool(dir: &std::path::Path) -> GitOperationsTool {
         let security = Arc::new(SecurityPolicy {

@@ -1,4 +1,3 @@
-use zeroclaw_config::schema::MemoryConfig;
 use crate::policy::PolicyEnforcer;
 use anyhow::Result;
 use chrono::{DateTime, Duration, Local, NaiveDate, Utc};
@@ -7,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration as StdDuration, SystemTime};
+use zeroclaw_config::schema::MemoryConfig;
 
 const HYGIENE_INTERVAL_HOURS: i64 = 12;
 const STATE_FILE: &str = "memory_hygiene_state.json";
@@ -424,7 +424,8 @@ fn split_name(filename: &str) -> (&str, &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::{Memory, MemoryCategory}; use crate::sqlite::SqliteMemory;
+    use crate::sqlite::SqliteMemory;
+    use crate::traits::{Memory, MemoryCategory};
     use tempfile::TempDir;
 
     fn default_cfg() -> MemoryConfig {

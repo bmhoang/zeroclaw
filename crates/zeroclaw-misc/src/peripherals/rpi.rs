@@ -3,11 +3,11 @@
 //! Only compiled when `peripheral-rpi` feature is enabled and target is Linux.
 //! Uses BCM pin numbering (e.g. GPIO 17, 27).
 
-use zeroclaw_config::schema::PeripheralBoardConfig;
 use crate::peripherals::Peripheral;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::{Value, json};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::schema::PeripheralBoardConfig;
 
 /// RPi GPIO peripheral — direct access via rppal.
 pub struct RpiGpioPeripheral {

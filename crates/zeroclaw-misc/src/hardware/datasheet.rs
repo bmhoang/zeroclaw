@@ -16,9 +16,9 @@
 //! enabled (adds `pdf-extract`).  Without that feature, the tool returns the
 //! PDF file path and instructs the LLM to use a future RAG step.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use std::path::PathBuf;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 // ── DatasheetManager ─────────────────────────────────────────────────────────
 

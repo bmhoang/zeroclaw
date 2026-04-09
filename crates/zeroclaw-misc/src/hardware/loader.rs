@@ -20,10 +20,10 @@
 
 use super::manifest::ToolManifest;
 use super::subprocess::SubprocessTool;
-use zeroclaw_api::tool::Tool;
 use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
+use zeroclaw_api::tool::Tool;
 
 /// A successfully loaded plugin, ready for registration.
 pub struct LoadedPlugin {

@@ -1,11 +1,11 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use anyhow::Context;
 use async_trait::async_trait;
 use serde_json::json;
 use std::path::PathBuf;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
 
 /// Standalone image generation tool using fal.ai (Flux / Nano Banana models).
 ///
@@ -288,7 +288,8 @@ impl Tool for ImageGenTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

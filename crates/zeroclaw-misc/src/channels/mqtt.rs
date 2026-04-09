@@ -9,11 +9,11 @@ use anyhow::Result;
 use rumqttc::{AsyncClient, Event, MqttOptions, Packet, QoS, Transport};
 use tracing::{info, warn};
 
-use zeroclaw_config::schema::MqttConfig;
 use crate::sop::audit::SopAuditLogger;
 use crate::sop::dispatch::{dispatch_sop_event, process_headless_results};
 use crate::sop::engine::{SopEngine, now_iso8601};
 use crate::sop::types::{SopEvent, SopTriggerSource};
+use zeroclaw_config::schema::MqttConfig;
 
 /// Run the MQTT SOP listener loop.
 ///

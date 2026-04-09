@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
 use super::web_search_provider_routing::{WebSearchProviderRoute, resolve_web_search_provider};
 use async_trait::async_trait;
 use regex::Regex;
 use serde_json::json;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Web search tool for searching the internet.
 /// Supports multiple providers: DuckDuckGo (free), Brave (requires API key),
@@ -112,7 +112,8 @@ impl WebSearchTool {
         // Decrypt if necessary.
         if zeroclaw_config::secrets::SecretStore::is_encrypted(&raw_key) {
             let zeroclaw_dir = self.config_path.parent().unwrap_or_else(|| Path::new("."));
-            let store = zeroclaw_config::secrets::SecretStore::new(zeroclaw_dir, self.secrets_encrypt);
+            let store =
+                zeroclaw_config::secrets::SecretStore::new(zeroclaw_dir, self.secrets_encrypt);
             let plaintext = store.decrypt(&raw_key)?;
             if plaintext.is_empty() {
                 anyhow::bail!("Brave API key not configured (decrypted value is empty)");
@@ -130,7 +131,8 @@ impl WebSearchTool {
         let builder = reqwest::Client::builder()
             .timeout(Duration::from_secs(self.timeout_secs))
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-        let builder = zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
+        let builder =
+            zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
         let client = builder.build()?;
 
         let response = client.get(&search_url).send().await?;
@@ -204,7 +206,8 @@ impl WebSearchTool {
         );
 
         let builder = reqwest::Client::builder().timeout(Duration::from_secs(self.timeout_secs));
-        let builder = zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
+        let builder =
+            zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
         let client = builder.build()?;
 
         let response = client
@@ -305,7 +308,8 @@ impl WebSearchTool {
         let builder = reqwest::Client::builder()
             .timeout(Duration::from_secs(self.timeout_secs))
             .user_agent("ZeroClaw/1.0");
-        let builder = zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
+        let builder =
+            zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.web_search");
         let client = builder.build()?;
 
         let response = client

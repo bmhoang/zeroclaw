@@ -3,11 +3,11 @@ use crate::traits::{
     ChatMessage, ChatRequest as ProviderChatRequest, ChatResponse as ProviderChatResponse,
     Provider, ProviderCapabilities, TokenUsage, ToolCall as ProviderToolCall,
 };
-use zeroclaw_api::tool::ToolSpec;
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use zeroclaw_api::tool::ToolSpec;
 
 pub struct OpenRouterProvider {
     credential: Option<String>,

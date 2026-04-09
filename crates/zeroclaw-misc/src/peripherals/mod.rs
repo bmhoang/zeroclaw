@@ -27,11 +27,11 @@ pub mod rpi;
 #[cfg(any(feature = "hardware", feature = "peripheral-rpi"))]
 pub use traits::Peripheral;
 
+use anyhow::Result;
+use zeroclaw_api::tool::Tool;
 use zeroclaw_config::schema::{Config, PeripheralBoardConfig, PeripheralsConfig};
 #[cfg(feature = "hardware")]
 use zeroclaw_tools::HardwareMemoryMapTool;
-use zeroclaw_api::tool::Tool;
-use anyhow::Result;
 
 /// List configured boards from config (no connection yet).
 pub fn list_configured_boards(config: &PeripheralsConfig) -> Vec<&PeripheralBoardConfig> {

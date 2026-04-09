@@ -1,5 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
-use zeroclaw_config::schema::{Config, StreamMode};
 use crate::security::pairing::PairingGuard;
 use anyhow::Context;
 use async_trait::async_trait;
@@ -11,6 +9,8 @@ use std::path::Path;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tokio::fs;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
+use zeroclaw_config::schema::{Config, StreamMode};
 
 /// Telegram's maximum message length for text messages
 const TELEGRAM_MAX_MESSAGE_LENGTH: usize = 4096;
@@ -424,7 +424,10 @@ impl TelegramChannel {
     }
 
     /// Configure voice transcription.
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }
@@ -500,7 +503,10 @@ impl TelegramChannel {
     }
 
     fn http_client(&self) -> reqwest::Client {
-        zeroclaw_config::schema::build_channel_proxy_client("channel.telegram", self.proxy_url.as_deref())
+        zeroclaw_config::schema::build_channel_proxy_client(
+            "channel.telegram",
+            self.proxy_url.as_deref(),
+        )
     }
 
     fn normalize_identity(value: &str) -> String {
@@ -4801,7 +4807,10 @@ mod tests {
 
         // Multimodal pipeline still detects the marker.
         let messages = vec![zeroclaw_providers::ChatMessage::user(content)];
-        assert_eq!(zeroclaw_providers::multimodal::count_image_markers(&messages), 1);
+        assert_eq!(
+            zeroclaw_providers::multimodal::count_image_markers(&messages),
+            1
+        );
     }
 
     // ── E2E: attachment saves file and formats content ───────────────

@@ -5,12 +5,12 @@ pub mod cost;
 pub mod domain_matcher;
 pub mod helpers;
 pub mod pairing;
+pub mod policy;
 pub mod provider_aliases;
 pub mod runtime;
 pub mod scattered_types;
 pub mod schema;
 pub mod secrets;
-pub mod policy;
 pub mod traits;
 pub mod workspace;
 

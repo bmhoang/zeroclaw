@@ -1,13 +1,13 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::{DelegateAgentConfig, SwarmConfig, SwarmStrategy};
-use zeroclaw_api::provider::{self, Provider};
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
+use zeroclaw_api::provider::{self, Provider};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_config::schema::{DelegateAgentConfig, SwarmConfig, SwarmStrategy};
 
 /// Default timeout for individual agent calls within a swarm.
 const SWARM_AGENT_TIMEOUT_SECS: u64 = 120;
@@ -546,7 +546,8 @@ impl Tool for SwarmTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

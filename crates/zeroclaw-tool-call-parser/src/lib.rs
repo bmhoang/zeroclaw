@@ -1437,7 +1437,10 @@ pub fn strip_tool_result_blocks(text: &str) -> String {
     result.trim().to_string()
 }
 
-pub fn detect_tool_call_parse_issue(response: &str, parsed_calls: &[ParsedToolCall]) -> Option<String> {
+pub fn detect_tool_call_parse_issue(
+    response: &str,
+    parsed_calls: &[ParsedToolCall],
+) -> Option<String> {
     if !parsed_calls.is_empty() {
         return None;
     }
@@ -1506,7 +1509,6 @@ pub fn build_native_assistant_history_from_parsed_calls(
 
     Some(obj.to_string())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -2653,5 +2655,4 @@ Let me check the result."#;
         assert_eq!(parsed["content"].as_str(), Some("answer"));
         assert!(parsed.get("reasoning_content").is_none());
     }
-
 }

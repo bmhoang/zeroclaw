@@ -2,10 +2,10 @@ use super::Provider;
 use super::traits::{
     ChatMessage, ChatRequest, ChatResponse, StreamChunk, StreamEvent, StreamOptions, StreamResult,
 };
-use zeroclaw_config::schema::ModelPricing;
 use async_trait::async_trait;
 use futures_util::stream::BoxStream;
 use std::collections::HashMap;
+use zeroclaw_config::schema::ModelPricing;
 
 /// A single route: maps a task hint to a provider + model combo.
 #[derive(Debug, Clone)]
@@ -318,10 +318,10 @@ impl Provider for RouterProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_api::tool::ToolSpec;
     use futures_util::StreamExt;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use zeroclaw_api::tool::ToolSpec;
 
     struct MockProvider {
         calls: Arc<AtomicUsize>,

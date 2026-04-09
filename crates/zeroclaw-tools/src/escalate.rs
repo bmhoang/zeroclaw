@@ -5,10 +5,6 @@
 //! additionally fire a Pushover mobile notification when credentials are available.
 //! Supports optional blocking mode to wait for a human response.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use crate::ask_user::ChannelMapHandle;
 use async_trait::async_trait;
 use parking_lot::RwLock;
@@ -16,6 +12,10 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
 
 const PUSHOVER_API_URL: &str = "https://api.pushover.net/1/messages.json";
 const PUSHOVER_REQUEST_TIMEOUT_SECS: u64 = 15;

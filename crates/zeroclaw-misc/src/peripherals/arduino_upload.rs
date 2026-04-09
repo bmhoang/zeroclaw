@@ -4,10 +4,10 @@
 //! sketch code and calls this tool. ZeroClaw compiles and uploads it — no
 //! manual IDE or file editing.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use std::process::Command;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Tool: upload Arduino sketch (agent-generated code) to the board.
 pub struct ArduinoUploadTool {

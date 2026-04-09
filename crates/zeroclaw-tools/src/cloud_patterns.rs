@@ -3,11 +3,11 @@
 //! Provides a built-in set of cloud migration and modernization patterns,
 //! with pattern matching against workload descriptions.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::util_helpers::truncate_with_ellipsis;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// A cloud architecture pattern with metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]

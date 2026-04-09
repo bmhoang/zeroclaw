@@ -4,11 +4,11 @@
 //! cost analysis, and Well-Architected Framework architecture review.
 //! This tool does NOT create, modify, or delete cloud resources.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::CloudOpsConfig;
 use crate::util_helpers::truncate_with_ellipsis;
 use async_trait::async_trait;
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::schema::CloudOpsConfig;
 
 /// Read-only cloud operations advisory tool.
 ///

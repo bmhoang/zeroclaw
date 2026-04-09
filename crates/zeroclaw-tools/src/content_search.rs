@@ -1,9 +1,9 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::process::Stdio;
 use std::sync::{Arc, OnceLock};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
 
 const MAX_RESULTS: usize = 1000;
 const MAX_OUTPUT_BYTES: usize = 1_048_576; // 1 MB
@@ -657,9 +657,10 @@ fn truncate_utf8(input: &str, max_bytes: usize) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use std::path::PathBuf;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security(workspace: PathBuf) -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

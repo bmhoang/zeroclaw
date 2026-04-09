@@ -5,11 +5,11 @@
 //! airport IATA codes, GPS coordinates, zip/postal codes, and domain-based
 //! geolocation. Units default to metric but can be overridden per-call.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::Duration;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 const WTTR_BASE_URL: &str = "https://wttr.in";
 const WTTR_TIMEOUT_SECS: u64 = 15;
@@ -154,7 +154,8 @@ impl WeatherTool {
             .connect_timeout(Duration::from_secs(WTTR_CONNECT_TIMEOUT_SECS))
             .user_agent("zeroclaw-weather/1.0");
 
-        let builder = zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.weather");
+        let builder =
+            zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "tool.weather");
         let client = builder.build()?;
 
         let response = client.get(&url).send().await?;

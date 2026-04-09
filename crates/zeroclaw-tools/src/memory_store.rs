@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_memory::{Memory, MemoryCategory};
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_memory::{Memory, MemoryCategory};
 
 /// Let the agent store memories — its own brain writes
 pub struct MemoryStoreTool {
@@ -96,9 +96,10 @@ impl Tool for MemoryStoreTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::SqliteMemory;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_memory::SqliteMemory;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

@@ -1,8 +1,8 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
 
 const MAX_RESULTS: usize = 1000;
 
@@ -180,9 +180,10 @@ impl Tool for GlobSearchTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use std::path::PathBuf;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security(workspace: PathBuf) -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

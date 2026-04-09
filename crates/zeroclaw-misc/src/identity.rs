@@ -4,12 +4,12 @@
 //! portable AI identity. This module handles loading and converting AIEOS v1.1
 //! JSON to ZeroClaw's system prompt format.
 
-use zeroclaw_config::schema::IdentityConfig;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use zeroclaw_config::schema::IdentityConfig;
 
 /// AIEOS v1.1 identity structure.
 ///

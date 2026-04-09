@@ -16,7 +16,6 @@
 //! | `session/stop`    | Gracefully terminate a session            |
 
 use crate::agent::agent::{Agent, TurnEvent};
-use zeroclaw_config::schema::Config;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,6 +26,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::sync::Mutex;
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
+use zeroclaw_config::schema::Config;
 
 // ── Configuration ────────────────────────────────────────────────
 

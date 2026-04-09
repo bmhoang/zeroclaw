@@ -1,4 +1,3 @@
-use zeroclaw_config::schema::Config;
 use crate::cron::{
     CronJob, CronJobPatch, CronRun, DeliveryConfig, JobType, Schedule, SessionTarget,
     next_run_for_schedule, schedule_cron_expression, validate_delivery_config, validate_schedule,
@@ -8,6 +7,7 @@ use chrono::{DateTime, Utc};
 use rusqlite::types::{FromSqlResult, ValueRef};
 use rusqlite::{Connection, params};
 use uuid::Uuid;
+use zeroclaw_config::schema::Config;
 
 const MAX_CRON_OUTPUT_BYTES: usize = 16 * 1024;
 const TRUNCATED_OUTPUT_MARKER: &str = "\n...[truncated]";
@@ -942,9 +942,9 @@ fn with_connection<T>(config: &Config, f: impl FnOnce(&Connection) -> Result<T>)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::Config;
     use chrono::Duration as ChronoDuration;
     use tempfile::TempDir;
+    use zeroclaw_config::schema::Config;
 
     fn test_config(tmp: &TempDir) -> Config {
         let config = Config {

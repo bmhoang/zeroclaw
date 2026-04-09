@@ -1,9 +1,9 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::{Result, bail};
 use async_trait::async_trait;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Reddit channel — polls for mentions, DMs, and comment replies via Reddit OAuth2 API.
 pub struct RedditChannel {

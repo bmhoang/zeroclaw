@@ -3,9 +3,9 @@
 //! Use when user asks "what board do I have?", "board info", "connected hardware", etc.
 //! Uses probe-rs for Nucleo when available; otherwise static datasheet info.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Static board info (datasheets). Used when probe-rs is unavailable.
 const BOARD_INFO: &[(&str, &str, &str)] = &[

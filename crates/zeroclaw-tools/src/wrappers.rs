@@ -22,10 +22,10 @@
 //! );
 //! ```
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
 
 /// Type alias for a path-extraction closure used by [`PathGuardedTool`].
 type PathExtractor = dyn Fn(&serde_json::Value) -> Option<String> + Send + Sync;
@@ -181,9 +181,10 @@ impl<T: Tool> Tool for PathGuardedTool<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use async_trait::async_trait;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

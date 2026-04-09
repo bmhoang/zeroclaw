@@ -4,11 +4,11 @@
 // can persist the execution as a reusable skill definition (SKILL.toml)
 // under `~/.zeroclaw/workspace/skills/<slug>/`.
 
+use anyhow::{Context, Result};
+use std::path::PathBuf;
 use zeroclaw_config::schema::SkillCreationConfig;
 use zeroclaw_memory::embeddings::EmbeddingProvider;
 use zeroclaw_memory::vector::cosine_similarity;
-use anyhow::{Context, Result};
-use std::path::PathBuf;
 
 /// A record of a single tool call executed during a task.
 #[derive(Debug, Clone)]
@@ -371,8 +371,8 @@ pub fn extract_tool_calls_from_history(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::embeddings::{EmbeddingProvider, NoopEmbedding};
     use async_trait::async_trait;
+    use zeroclaw_memory::embeddings::{EmbeddingProvider, NoopEmbedding};
 
     // ── Slug generation ──────────────────────────────────────────
 

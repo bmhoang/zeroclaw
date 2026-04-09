@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use parking_lot::Mutex;
@@ -7,6 +6,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 use zeroclaw_memory::{Memory, MemoryCategory};
 

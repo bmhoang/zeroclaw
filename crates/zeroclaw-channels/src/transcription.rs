@@ -375,7 +375,8 @@ impl TranscriptionProvider for AssemblyAiProvider {
     async fn transcribe(&self, audio_data: &[u8], file_name: &str) -> Result<String> {
         let (_, _) = validate_audio(audio_data, file_name)?;
 
-        let client = zeroclaw_config::schema::build_runtime_proxy_client("transcription.assemblyai");
+        let client =
+            zeroclaw_config::schema::build_runtime_proxy_client("transcription.assemblyai");
 
         // Step 1: Upload the audio file.
         let upload_resp = client
@@ -665,7 +666,8 @@ impl TranscriptionProvider for LocalWhisperProvider {
 
         let (normalized_name, mime) = resolve_audio_format(file_name)?;
 
-        let client = zeroclaw_config::schema::build_runtime_proxy_client("transcription.local_whisper");
+        let client =
+            zeroclaw_config::schema::build_runtime_proxy_client("transcription.local_whisper");
 
         // to_vec() clones the buffer for the multipart payload; peak memory per
         // call is ~2× max_audio_bytes. TODO: replace with streaming upload once

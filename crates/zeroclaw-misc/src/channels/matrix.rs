@@ -271,7 +271,10 @@ impl MatrixChannel {
     }
 
     /// Configure voice transcription for audio messages.
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }

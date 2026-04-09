@@ -5,11 +5,11 @@
 //! sprint summaries, and effort estimation.
 
 use super::report_templates;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fmt::Write as _;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Project intelligence tool for consulting project management.
 ///

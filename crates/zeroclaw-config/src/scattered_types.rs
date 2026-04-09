@@ -446,9 +446,7 @@ impl Default for GmailPushConfig {
     }
 }
 
-#[derive(
-    Debug, Clone, Default, Serialize, Deserialize, zeroclaw_macros::Configurable,
-)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, zeroclaw_macros::Configurable)]
 #[cfg_attr(feature = "schema-export", derive(schemars::JsonSchema))]
 #[prefix = "channels.clawdtalk"]
 pub struct ClawdTalkConfig {

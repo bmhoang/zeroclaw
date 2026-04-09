@@ -3,12 +3,12 @@
 //! When ZeroClaw runs on Uno Q, the Bridge app (Python + MCU) exposes
 //! digitalWrite/digitalRead over a local socket. These tools connect to it.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 const BRIDGE_HOST: &str = "127.0.0.1";
 const BRIDGE_PORT: u16 = 9999;

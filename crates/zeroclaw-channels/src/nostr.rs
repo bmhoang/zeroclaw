@@ -1,10 +1,10 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use nostr_sdk::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Protocol used by a sender, tracked so replies use the same protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::Context;
 use async_trait::async_trait;
 use base64::Engine as _;
@@ -11,6 +10,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tokio::io::AsyncWriteExt;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 #[derive(Clone)]
 struct CachedSlackDisplayName {
@@ -223,7 +223,10 @@ impl SlackChannel {
     }
 
     /// Configure voice transcription for audio file attachments.
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }
@@ -3268,7 +3271,8 @@ impl Channel for SlackChannel {
 
     async fn send(&self, message: &SendMessage) -> anyhow::Result<()> {
         // Detect Block Kit payloads produced by the `/config` command.
-        let body = if let Some(blocks_json) = message.content.strip_prefix(crate::util::BLOCK_KIT_PREFIX)
+        let body = if let Some(blocks_json) =
+            message.content.strip_prefix(crate::util::BLOCK_KIT_PREFIX)
         {
             let blocks: serde_json::Value = serde_json::from_str(blocks_json)
                 .context("invalid Block Kit JSON in runtime command response")?;

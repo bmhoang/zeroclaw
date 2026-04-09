@@ -15,12 +15,12 @@
 //!    - `gpio_rpi_blink`  — blink a GPIO pin N times
 //!    - `rpi_system_info` — return board model, RAM, temp, IP
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use std::fmt::Write as _;
 use std::fs;
 use std::time::Duration;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 // ─── LED sysfs helpers ──────────────────────────────────────────────────────
 

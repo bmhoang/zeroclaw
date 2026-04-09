@@ -1,7 +1,7 @@
 pub use zeroclaw_misc::service::*;
 
-use anyhow::{Context, Result, bail};
 use crate::config::Config;
+use anyhow::{Context, Result, bail};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;

@@ -26,7 +26,6 @@
 //! This channel is automatically selected when `session_path` is set in the config.
 //! The Cloud API channel is used when `phone_number_id` is set.
 
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use super::whatsapp_storage::RusqliteStore;
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
@@ -35,6 +34,7 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::select;
 use wa_rs_proto::whatsapp::device_props::PlatformType;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// WhatsApp Web channel using wa-rs with custom rusqlite storage
 ///
@@ -164,7 +164,10 @@ impl WhatsAppWebChannel {
 
     /// Configure voice transcription (STT) for incoming voice notes.
     #[cfg(feature = "whatsapp-web")]
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }

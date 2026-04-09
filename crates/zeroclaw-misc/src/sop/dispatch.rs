@@ -350,11 +350,11 @@ pub async fn check_sop_cron_triggers(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::{MemoryConfig, SopConfig};
-    use zeroclaw_memory::traits::Memory;
     use crate::sop::types::{
         Sop, SopExecutionMode, SopPriority, SopRunAction, SopStep, SopTrigger, SopTriggerSource,
     };
+    use zeroclaw_config::schema::{MemoryConfig, SopConfig};
+    use zeroclaw_memory::traits::Memory;
 
     fn test_sop(name: &str, triggers: Vec<SopTrigger>) -> Sop {
         Sop {

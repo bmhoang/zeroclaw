@@ -45,10 +45,10 @@ pub use traits::Memory;
 #[allow(unused_imports)]
 pub use traits::{ExportFilter, MemoryCategory, MemoryEntry, ProceduralMessage};
 
-use zeroclaw_config::schema::{EmbeddingRouteConfig, MemoryConfig, StorageProviderConfig};
 use anyhow::Context;
 use std::path::Path;
 use std::sync::Arc;
+use zeroclaw_config::schema::{EmbeddingRouteConfig, MemoryConfig, StorageProviderConfig};
 
 fn create_memory_with_builders<F>(
     backend_name: &str,
@@ -408,8 +408,8 @@ pub fn create_response_cache(config: &MemoryConfig, workspace_dir: &Path) -> Opt
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::{EmbeddingRouteConfig, StorageProviderConfig};
     use tempfile::TempDir;
+    use zeroclaw_config::schema::{EmbeddingRouteConfig, StorageProviderConfig};
 
     #[test]
     fn factory_sqlite() {

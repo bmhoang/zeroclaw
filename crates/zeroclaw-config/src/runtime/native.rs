@@ -1,5 +1,5 @@
-use zeroclaw_api::runtime_traits::RuntimeAdapter;
 use std::path::{Path, PathBuf};
+use zeroclaw_api::runtime_traits::RuntimeAdapter;
 
 /// Native runtime — full access, runs on Mac/Linux/Windows/Docker/Raspberry Pi
 pub struct NativeRuntime;

@@ -4,15 +4,13 @@
 //! Provides full-text search via FTS5 and automatic TTL-based cleanup.
 //! Designed as the default backend, replacing JSONL for new installations.
 
-use crate::session_backend::{
-    SessionBackend, SessionMetadata, SessionQuery, SessionState,
-};
-use zeroclaw_api::provider::ChatMessage;
+use crate::session_backend::{SessionBackend, SessionMetadata, SessionQuery, SessionState};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use parking_lot::Mutex;
 use rusqlite::{Connection, params};
 use std::path::{Path, PathBuf};
+use zeroclaw_api::provider::ChatMessage;
 
 /// SQLite-backed session store with FTS5 and WAL mode.
 pub struct SqliteSessionBackend {

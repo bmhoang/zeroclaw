@@ -1,9 +1,9 @@
-use zeroclaw_config::schema::LinkedInImageConfig;
 use anyhow::Context;
 use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::json;
 use std::path::{Path, PathBuf};
+use zeroclaw_config::schema::LinkedInImageConfig;
 
 const LINKEDIN_API_BASE: &str = "https://api.linkedin.com";
 const LINKEDIN_OAUTH_TOKEN_URL: &str = "https://www.linkedin.com/oauth/v2/accessToken";

@@ -5,14 +5,14 @@
 //! - `sessions_history` — read message history from a specific session
 //! - `sessions_send` — send a message to a specific session
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_infra::session_backend::SessionBackend;
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::fmt::Write;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_infra::session_backend::SessionBackend;
 
 /// Validate that a session ID is non-empty and contains at least one
 /// alphanumeric character (prevents blank keys after sanitization).
@@ -297,9 +297,9 @@ impl Tool for SessionsSendTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_channels::session_store::SessionStore;
-    use zeroclaw_api::provider::ChatMessage;
     use tempfile::TempDir;
+    use zeroclaw_api::provider::ChatMessage;
+    use zeroclaw_channels::session_store::SessionStore;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

@@ -1,6 +1,6 @@
-use zeroclaw_config::schema::Config;
 use crate::security::SecurityPolicy;
 use anyhow::{Result, anyhow, bail};
+use zeroclaw_config::schema::Config;
 
 mod schedule;
 mod store;

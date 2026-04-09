@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use base64::Engine as _;
 use futures_util::{SinkExt, StreamExt};
@@ -11,6 +10,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const QQ_API_BASE: &str = "https://api.sgroup.qq.com";
 const QQ_AUTH_URL: &str = "https://bots.qq.com/app/getAppAccessToken";
@@ -1035,9 +1035,12 @@ impl Channel for QQChannel {
         let gw_url = self.get_gateway_url(&token).await?;
 
         tracing::info!("QQ: connecting to gateway WebSocket...");
-        let (ws_stream, _) =
-            zeroclaw_config::schema::ws_connect_with_proxy(&gw_url, "channel.qq", self.proxy_url.as_deref())
-                .await?;
+        let (ws_stream, _) = zeroclaw_config::schema::ws_connect_with_proxy(
+            &gw_url,
+            "channel.qq",
+            self.proxy_url.as_deref(),
+        )
+        .await?;
         let (mut write, mut read) = ws_stream.split();
 
         // Read Hello (opcode 10)

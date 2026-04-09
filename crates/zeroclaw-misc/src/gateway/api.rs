@@ -968,7 +968,9 @@ fn restore_embedding_route_api_keys(
     }
 }
 
-fn mask_sensitive_fields(config: &zeroclaw_config::schema::Config) -> zeroclaw_config::schema::Config {
+fn mask_sensitive_fields(
+    config: &zeroclaw_config::schema::Config,
+) -> zeroclaw_config::schema::Config {
     let mut masked = config.clone();
 
     mask_optional_secret(&mut masked.api_key);
@@ -1538,8 +1540,6 @@ pub async fn handle_claude_code_hook(
 mod tests {
     use super::*;
     use crate::gateway::{AppState, GatewayRateLimiter, IdempotencyStore, nodes};
-    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
-    use zeroclaw_providers::Provider;
     use crate::security::pairing::PairingGuard;
     use async_trait::async_trait;
     use axum::response::IntoResponse;
@@ -1547,6 +1547,8 @@ mod tests {
     use parking_lot::Mutex;
     use std::sync::Arc;
     use std::time::Duration;
+    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
+    use zeroclaw_providers::Provider;
 
     struct MockMemory;
 

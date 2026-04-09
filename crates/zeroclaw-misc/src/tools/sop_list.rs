@@ -4,8 +4,8 @@ use std::sync::Mutex;
 use async_trait::async_trait;
 use serde_json::json;
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::sop::SopEngine;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Lists all loaded SOPs with their triggers, priority, step count, and active runs.
 pub struct SopListTool {
@@ -118,10 +118,10 @@ impl Tool for SopListTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::SopConfig;
     use crate::sop::engine::SopEngine;
     use crate::sop::types::*;
     use std::sync::Arc;
+    use zeroclaw_config::schema::SopConfig;
 
     fn test_sop(name: &str, priority: SopPriority) -> Sop {
         Sop {

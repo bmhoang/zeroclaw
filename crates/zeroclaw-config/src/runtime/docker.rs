@@ -1,7 +1,7 @@
-use zeroclaw_api::runtime_traits::RuntimeAdapter;
 use crate::schema::DockerRuntimeConfig;
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use zeroclaw_api::runtime_traits::RuntimeAdapter;
 
 /// Docker runtime with lightweight container isolation.
 #[derive(Debug, Clone)]

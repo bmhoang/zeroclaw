@@ -1,7 +1,7 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use regex::Regex;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// `WhatsApp` channel — uses `WhatsApp` Business Cloud API
 ///
@@ -159,7 +159,10 @@ impl WhatsAppChannel {
     }
 
     fn http_client(&self) -> reqwest::Client {
-        zeroclaw_config::schema::build_channel_proxy_client("channel.whatsapp", self.proxy_url.as_deref())
+        zeroclaw_config::schema::build_channel_proxy_client(
+            "channel.whatsapp",
+            self.proxy_url.as_deref(),
+        )
     }
 
     /// Check if a phone number is allowed (E.164 format: +1234567890)

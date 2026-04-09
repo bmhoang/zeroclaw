@@ -2,15 +2,15 @@
 //!
 //! Provides `workspace` subcommands: list, switch, create, info, export.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::workspace::WorkspaceManager;
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::fmt::Write;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_config::workspace::WorkspaceManager;
 
 /// Agent-callable tool for workspace management operations.
 pub struct WorkspaceTool {
@@ -257,8 +257,8 @@ impl Tool for WorkspaceTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_tool(tmp: &TempDir) -> WorkspaceTool {
         let mgr = WorkspaceManager::new(tmp.path().to_path_buf());

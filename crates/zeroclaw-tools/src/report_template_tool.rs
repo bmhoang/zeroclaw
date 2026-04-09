@@ -4,10 +4,10 @@
 //! templates with custom variable maps without going through ProjectIntelTool.
 
 use super::report_templates;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::collections::HashMap;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Standalone report template tool.
 ///

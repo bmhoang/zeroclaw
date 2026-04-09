@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use base64::Engine as _;
 use futures_util::{SinkExt, StreamExt};
@@ -9,6 +8,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::Message as WsMsg;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const FEISHU_BASE_URL: &str = "https://open.feishu.cn/open-apis";
 const FEISHU_WS_BASE_URL: &str = "https://open.feishu.cn";
@@ -511,7 +511,10 @@ impl LarkChannel {
         ch
     }
 
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }

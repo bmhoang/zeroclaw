@@ -3,11 +3,11 @@
 //! ClawdTalk (https://clawdtalk.com) provides AI-powered voice conversations
 //! using Telnyx's global SIP network for low-latency, high-quality calls.
 
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 pub use zeroclaw_config::scattered_types::ClawdTalkConfig;
 

@@ -3,13 +3,13 @@
 //! Provides a pre-execution hook that prompts the user before tool calls,
 //! with session-scoped "Always" allowlists and audit logging.
 
-use zeroclaw_config::schema::AutonomyConfig;
 use crate::security::AutonomyLevel;
 use chrono::Utc;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::io::{self, BufRead, Write};
+use zeroclaw_config::schema::AutonomyConfig;
 
 // ── Types ────────────────────────────────────────────────────────
 

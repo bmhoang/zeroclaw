@@ -1,5 +1,4 @@
 use crate::agent::personality;
-use zeroclaw_config::schema::IdentityConfig;
 use crate::i18n::ToolDescriptions;
 use crate::identity;
 use crate::security::AutonomyLevel;
@@ -9,6 +8,7 @@ use anyhow::Result;
 use chrono::{Datelike, Local, Timelike};
 use std::fmt::Write;
 use std::path::Path;
+use zeroclaw_config::schema::IdentityConfig;
 
 pub struct PromptContext<'a> {
     pub workspace_dir: &'a Path,

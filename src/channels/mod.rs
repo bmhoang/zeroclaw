@@ -1,4 +1,6 @@
 pub use zeroclaw_misc::channels::*;
+pub mod session_backend { pub use zeroclaw_infra::session_backend::*; }
+pub mod session_sqlite { pub use zeroclaw_infra::session_sqlite::*; }
 
 use crate::config::Config;
 use anyhow::Result;

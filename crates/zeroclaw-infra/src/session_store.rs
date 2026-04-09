@@ -6,9 +6,9 @@
 //! are loaded from disk to restore conversation context.
 
 use crate::session_backend::SessionBackend;
-use zeroclaw_api::provider::ChatMessage;
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
+use zeroclaw_api::provider::ChatMessage;
 
 /// Append-only JSONL session store for channel conversations.
 pub struct SessionStore {

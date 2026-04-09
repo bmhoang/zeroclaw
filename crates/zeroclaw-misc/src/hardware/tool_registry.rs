@@ -23,11 +23,11 @@
 use super::device::DeviceRegistry;
 use super::gpio::gpio_tools;
 use super::loader::scan_plugin_dir;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 // ── ToolError ─────────────────────────────────────────────────────────────────
 

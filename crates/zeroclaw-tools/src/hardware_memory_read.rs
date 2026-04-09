@@ -3,9 +3,9 @@
 //! Use when user asks to "read register values", "read memory at address", "dump lower memory", etc.
 //! Requires probe feature and Nucleo connected via USB.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// RAM base for Nucleo-F401RE (STM32F401)
 const NUCLEO_RAM_BASE: u64 = 0x2000_0000;

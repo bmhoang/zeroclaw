@@ -1,9 +1,9 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_memory::traits::ExportFilter;
-use zeroclaw_memory::{Memory, MemoryCategory};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_memory::traits::ExportFilter;
+use zeroclaw_memory::{Memory, MemoryCategory};
 
 /// Bulk-export memories as a JSON array for GDPR Art. 20 data portability.
 pub struct MemoryExportTool {
@@ -107,8 +107,8 @@ impl Tool for MemoryExportTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::SqliteMemory;
     use tempfile::TempDir;
+    use zeroclaw_memory::SqliteMemory;
 
     fn test_mem() -> (TempDir, Arc<dyn Memory>) {
         let tmp = TempDir::new().unwrap();

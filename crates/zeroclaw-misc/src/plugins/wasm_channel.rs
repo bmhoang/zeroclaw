@@ -1,7 +1,7 @@
 //! Bridge between WASM plugins and the Channel trait.
 
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// A channel backed by a WASM plugin.
 pub struct WasmChannel {

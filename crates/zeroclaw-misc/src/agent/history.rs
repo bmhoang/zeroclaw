@@ -1,7 +1,7 @@
-use zeroclaw_providers::ChatMessage;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use zeroclaw_providers::ChatMessage;
 
 /// Default trigger for auto-compaction when non-system message count exceeds this threshold.
 /// Prefer passing the config-driven value via `run_tool_call_loop`; this constant is only

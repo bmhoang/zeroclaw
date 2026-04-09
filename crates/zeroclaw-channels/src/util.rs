@@ -120,4 +120,3 @@ pub fn strip_tool_call_tags(message: &str) -> String {
 
     result.trim().to_string()
 }
-

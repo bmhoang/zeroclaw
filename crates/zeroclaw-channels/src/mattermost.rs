@@ -1,8 +1,8 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::{Result, bail};
 use async_trait::async_trait;
 use parking_lot::Mutex;
 use std::sync::Arc;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const MAX_MATTERMOST_AUDIO_BYTES: u64 = 25 * 1024 * 1024;
 
@@ -57,7 +57,10 @@ impl MattermostChannel {
         self
     }
 
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }
@@ -76,7 +79,10 @@ impl MattermostChannel {
     }
 
     fn http_client(&self) -> reqwest::Client {
-        zeroclaw_config::schema::build_channel_proxy_client("channel.mattermost", self.proxy_url.as_deref())
+        zeroclaw_config::schema::build_channel_proxy_client(
+            "channel.mattermost",
+            self.proxy_url.as_deref(),
+        )
     }
 
     /// Check if a user ID is in the allowlist.

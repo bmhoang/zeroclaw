@@ -1,7 +1,7 @@
-use crate::traits::{ChannelConfig, HasPropKind, PropKind};
-use crate::provider_aliases::{is_glm_alias, is_zai_alias};
 use crate::autonomy::AutonomyLevel;
 use crate::domain_matcher::DomainMatcher;
+use crate::provider_aliases::{is_glm_alias, is_zai_alias};
+use crate::traits::{ChannelConfig, HasPropKind, PropKind};
 use anyhow::{Context, Result};
 use directories::UserDirs;
 #[cfg(feature = "schema-export")]
@@ -1594,8 +1594,7 @@ impl Default for AgentConfig {
             context_aware_tools: false,
             eval: crate::scattered_types::EvalConfig::default(),
             auto_classify: None,
-            context_compression:
-                crate::scattered_types::ContextCompressionConfig::default(),
+            context_compression: crate::scattered_types::ContextCompressionConfig::default(),
             max_tool_result_chars: default_max_tool_result_chars(),
             keep_tool_context_turns: default_keep_tool_context_turns(),
         }
@@ -12213,9 +12212,7 @@ default_temperature = 0.7
         );
 
         let browser_encrypted = stored.browser.computer_use.api_key.as_deref().unwrap();
-        assert!(crate::secrets::SecretStore::is_encrypted(
-            browser_encrypted
-        ));
+        assert!(crate::secrets::SecretStore::is_encrypted(browser_encrypted));
         assert_eq!(
             store.decrypt(browser_encrypted).unwrap(),
             "browser-credential"

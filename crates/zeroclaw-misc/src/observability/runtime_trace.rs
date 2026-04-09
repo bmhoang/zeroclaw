@@ -1,4 +1,3 @@
-use zeroclaw_config::schema::ObservabilityConfig;
 use anyhow::Result;
 use chrono::{Local, Utc};
 use serde::{Deserialize, Serialize};
@@ -8,6 +7,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, RwLock};
 use uuid::Uuid;
+use zeroclaw_config::schema::ObservabilityConfig;
 
 const DEFAULT_TRACE_REL_PATH: &str = "state/runtime-trace.jsonl";
 

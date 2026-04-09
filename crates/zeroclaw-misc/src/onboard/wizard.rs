@@ -1,24 +1,5 @@
 use crate::cli_input::Input;
-use zeroclaw_config::schema::{
-    DingTalkConfig, IrcConfig, LarkReceiveMode, LinqConfig, NextcloudTalkConfig, QQConfig,
-    SignalConfig, StreamMode, WhatsAppConfig,
-};
-#[cfg(feature = "channel-nostr")]
-use zeroclaw_config::schema::{NostrConfig, default_nostr_relays};
-use zeroclaw_config::schema::{
-    AutonomyConfig, BrowserConfig, ChannelsConfig, ComposioConfig, Config, DiscordConfig,
-    HeartbeatConfig, IMessageConfig, LarkConfig, MatrixConfig, MemoryConfig, ObservabilityConfig,
-    RuntimeConfig, SecretsConfig, SlackConfig, StorageConfig, TelegramConfig, WebhookConfig,
-};
 use crate::hardware::{self, HardwareConfig};
-use zeroclaw_memory::{
-    default_memory_backend_key, memory_backend_profile, selectable_memory_backends,
-};
-use zeroclaw_providers::{
-    canonical_china_provider_name, is_glm_alias, is_glm_cn_alias, is_minimax_alias,
-    is_moonshot_alias, is_qianfan_alias, is_qwen_alias, is_qwen_oauth_alias, is_zai_alias,
-    is_zai_cn_alias,
-};
 use anyhow::{Context, Result, bail};
 use console::style;
 use dialoguer::{Confirm, Select};
@@ -29,6 +10,25 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs;
+use zeroclaw_config::schema::{
+    AutonomyConfig, BrowserConfig, ChannelsConfig, ComposioConfig, Config, DiscordConfig,
+    HeartbeatConfig, IMessageConfig, LarkConfig, MatrixConfig, MemoryConfig, ObservabilityConfig,
+    RuntimeConfig, SecretsConfig, SlackConfig, StorageConfig, TelegramConfig, WebhookConfig,
+};
+use zeroclaw_config::schema::{
+    DingTalkConfig, IrcConfig, LarkReceiveMode, LinqConfig, NextcloudTalkConfig, QQConfig,
+    SignalConfig, StreamMode, WhatsAppConfig,
+};
+#[cfg(feature = "channel-nostr")]
+use zeroclaw_config::schema::{NostrConfig, default_nostr_relays};
+use zeroclaw_memory::{
+    default_memory_backend_key, memory_backend_profile, selectable_memory_backends,
+};
+use zeroclaw_providers::{
+    canonical_china_provider_name, is_glm_alias, is_glm_cn_alias, is_minimax_alias,
+    is_moonshot_alias, is_qianfan_alias, is_qwen_alias, is_qwen_oauth_alias, is_zai_alias,
+    is_zai_cn_alias,
+};
 
 // ── Project context collected during wizard ──────────────────────
 

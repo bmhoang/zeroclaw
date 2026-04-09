@@ -1,6 +1,6 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 pub struct CalculatorTool;
 

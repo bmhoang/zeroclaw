@@ -1,7 +1,7 @@
-use zeroclaw_providers::{ChatMessage, ChatResponse, ConversationMessage, ToolResultMessage};
 use crate::tools::{Tool, ToolSpec};
 use serde_json::Value;
 use std::fmt::Write;
+use zeroclaw_providers::{ChatMessage, ChatResponse, ConversationMessage, ToolResultMessage};
 
 #[derive(Debug, Clone)]
 pub struct ParsedToolCall {

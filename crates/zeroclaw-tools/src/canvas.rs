@@ -5,7 +5,6 @@
 //! context. Content is stored in a shared [`CanvasStore`] and broadcast to
 //! connected WebSocket clients via per-canvas channels.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
@@ -13,6 +12,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::broadcast;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Maximum content size per canvas frame (256 KB).
 pub const MAX_CONTENT_SIZE: usize = 256 * 1024;

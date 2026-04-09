@@ -3,11 +3,11 @@ pub use zeroclaw_misc::sop::*;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel;
-    use crate::sop::types::SopManifest;
     use crate::config::*;
-    use std::path::{Path, PathBuf};
+    use crate::sop::types::SopManifest;
     use std::fs;
+    use std::path::{Path, PathBuf};
+    use zeroclaw_config::autonomy::AutonomyLevel;
 
     #[test]
     fn parse_steps_basic() {

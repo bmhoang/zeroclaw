@@ -2,10 +2,10 @@ use crate::traits::{
     ChatMessage, ChatRequest as ProviderChatRequest, ChatResponse as ProviderChatResponse,
     Provider, TokenUsage, ToolCall as ProviderToolCall,
 };
-use zeroclaw_api::tool::ToolSpec;
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use zeroclaw_api::tool::ToolSpec;
 
 pub struct OpenAiProvider {
     base_url: String,
@@ -343,7 +343,11 @@ impl OpenAiProvider {
     }
 
     fn http_client(&self) -> Client {
-        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("provider.openai", 120, 10)
+        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "provider.openai",
+            120,
+            10,
+        )
     }
 }
 

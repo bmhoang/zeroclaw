@@ -8,8 +8,6 @@ use crate::channels::{
     Channel, DiscordChannel, MattermostChannel, QQChannel, SendMessage, SignalChannel,
     SlackChannel, TelegramChannel,
 };
-use zeroclaw_config::schema::Config;
-use zeroclaw_config::schema::{CronJobDecl, CronScheduleDecl};
 use crate::cron::{
     CronJob, CronJobPatch, DeliveryConfig, JobType, Schedule, SessionTarget, all_overdue_jobs,
     due_jobs, next_run_for_schedule, record_last_run, record_run, remove_job, reschedule_after_run,
@@ -23,6 +21,8 @@ use std::process::Stdio;
 use std::sync::Arc;
 use tokio::process::Command;
 use tokio::time::{self, Duration};
+use zeroclaw_config::schema::Config;
+use zeroclaw_config::schema::{CronJobDecl, CronScheduleDecl};
 
 const MIN_POLL_SECONDS: u64 = 5;
 const SHELL_JOB_TIMEOUT_SECS: u64 = 120;
@@ -833,11 +833,11 @@ fn build_cron_shell_command(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::Config;
     use crate::cron::{self, DeliveryConfig};
     use crate::security::SecurityPolicy;
     use chrono::{Duration as ChronoDuration, Utc};
     use tempfile::TempDir;
+    use zeroclaw_config::schema::Config;
 
     async fn test_config(tmp: &TempDir) -> Config {
         let config = Config {

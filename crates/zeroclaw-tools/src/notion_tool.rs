@@ -1,8 +1,8 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::{SecurityPolicy, ToolOperation};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::{SecurityPolicy, ToolOperation};
 
 const NOTION_API_BASE: &str = "https://api.notion.com/v1";
 const NOTION_VERSION: &str = "2022-06-28";
@@ -65,7 +65,8 @@ impl NotionTool {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            let truncated = crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
+            let truncated =
+                crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
             anyhow::bail!("Notion query_database failed ({status}): {truncated}");
         }
         resp.json().await.map_err(Into::into)
@@ -84,7 +85,8 @@ impl NotionTool {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            let truncated = crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
+            let truncated =
+                crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
             anyhow::bail!("Notion read_page failed ({status}): {truncated}");
         }
         resp.json().await.map_err(Into::into)
@@ -112,7 +114,8 @@ impl NotionTool {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            let truncated = crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
+            let truncated =
+                crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
             anyhow::bail!("Notion create_page failed ({status}): {truncated}");
         }
         resp.json().await.map_err(Into::into)
@@ -137,7 +140,8 @@ impl NotionTool {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            let truncated = crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
+            let truncated =
+                crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
             anyhow::bail!("Notion update_page failed ({status}): {truncated}");
         }
         resp.json().await.map_err(Into::into)
@@ -158,7 +162,8 @@ impl NotionTool {
         let status = resp.status();
         if !status.is_success() {
             let text = resp.text().await.unwrap_or_default();
-            let truncated = crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
+            let truncated =
+                crate::util_helpers::truncate_with_ellipsis(&text, MAX_ERROR_BODY_CHARS);
             anyhow::bail!("Notion search failed ({status}): {truncated}");
         }
         resp.json().await.map_err(Into::into)

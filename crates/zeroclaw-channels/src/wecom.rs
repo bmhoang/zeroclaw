@@ -1,5 +1,5 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// WeCom (WeChat Enterprise) Bot Webhook channel.
 ///

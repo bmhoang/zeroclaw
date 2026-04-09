@@ -4,9 +4,7 @@
 //! Request:  {"id":"1","cmd":"gpio_write","args":{"pin":13,"value":1}}
 //! Response: {"id":"1","ok":true,"result":"done"}
 
-use zeroclaw_config::schema::PeripheralBoardConfig;
 use crate::peripherals::Peripheral;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use portable_atomic::{AtomicU64, Ordering};
 use serde_json::{Value, json};
@@ -14,6 +12,8 @@ use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::Mutex;
 use tokio_serial::{SerialPortBuilderExt, SerialStream};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::schema::PeripheralBoardConfig;
 
 /// Allowed serial path patterns (security: deny arbitrary paths).
 const ALLOWED_PATH_PREFIXES: &[&str] = &[

@@ -1,13 +1,11 @@
-
-
-use zeroclaw_config::schema::Config;
-use zeroclaw_memory::{self, Memory, MemoryCategory};
 use anyhow::{Context, Result, bail};
 use directories::UserDirs;
 use rusqlite::{Connection, OpenFlags, OptionalExtension};
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use zeroclaw_config::schema::Config;
+use zeroclaw_memory::{self, Memory, MemoryCategory};
 
 #[derive(Debug, Clone)]
 struct SourceEntry {
@@ -24,7 +22,6 @@ struct MigrationStats {
     skipped_unchanged: usize,
     renamed_conflicts: usize,
 }
-
 
 pub async fn migrate_openclaw_memory(
     config: &Config,
@@ -418,10 +415,10 @@ fn backup_target_memory(workspace_dir: &Path) -> Result<Option<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::{Config, MemoryConfig};
-    use zeroclaw_memory::SqliteMemory;
     use rusqlite::params;
     use tempfile::TempDir;
+    use zeroclaw_config::schema::{Config, MemoryConfig};
+    use zeroclaw_memory::SqliteMemory;
 
     fn test_config(workspace: &Path) -> Config {
         Config {

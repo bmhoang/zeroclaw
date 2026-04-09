@@ -1,8 +1,8 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::security::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 const MAX_FILE_SIZE_BYTES: u64 = 10 * 1024 * 1024;
 
@@ -700,11 +700,11 @@ mod tests {
     // ── E2E: full agent pipeline with real FileReadTool + PDF extraction ──
 
     mod e2e_helpers {
+        use crate::observability::{NoopObserver, Observer};
+        use std::sync::{Arc, Mutex};
         use zeroclaw_config::schema::MemoryConfig;
         use zeroclaw_memory::{self, Memory};
-        use crate::observability::{NoopObserver, Observer};
         use zeroclaw_providers::{ChatMessage, ChatRequest, ChatResponse, Provider};
-        use std::sync::{Arc, Mutex};
 
         pub type SharedRequests = Arc<Mutex<Vec<Vec<ChatMessage>>>>;
 
@@ -780,8 +780,8 @@ mod tests {
     async fn e2e_agent_file_read_pdf_extraction() {
         use crate::agent::agent::Agent;
         use crate::agent::dispatcher::NativeToolDispatcher;
-        use zeroclaw_providers::{ChatResponse, Provider, ToolCall};
         use e2e_helpers::*;
+        use zeroclaw_providers::{ChatResponse, Provider, ToolCall};
 
         // ── Set up workspace with PDF fixture ──
         let workspace = std::env::temp_dir().join("zeroclaw_test_e2e_file_read_pdf");
@@ -877,8 +877,8 @@ mod tests {
     async fn e2e_agent_file_read_lossy_binary() {
         use crate::agent::agent::Agent;
         use crate::agent::dispatcher::NativeToolDispatcher;
-        use zeroclaw_providers::{ChatResponse, Provider, ToolCall};
         use e2e_helpers::*;
+        use zeroclaw_providers::{ChatResponse, Provider, ToolCall};
 
         // ── Set up workspace with binary file ──
         let workspace = std::env::temp_dir().join("zeroclaw_test_e2e_file_read_lossy");
@@ -972,9 +972,9 @@ mod tests {
     async fn e2e_live_file_read_pdf() {
         use crate::agent::agent::Agent;
         use crate::agent::dispatcher::XmlToolDispatcher;
+        use e2e_helpers::*;
         use zeroclaw_providers::openai_codex::OpenAiCodexProvider;
         use zeroclaw_providers::{Provider, ProviderRuntimeOptions};
-        use e2e_helpers::*;
 
         // ── Set up workspace with PDF fixture ──
         let workspace = std::env::temp_dir().join("zeroclaw_test_e2e_live_file_read_pdf");

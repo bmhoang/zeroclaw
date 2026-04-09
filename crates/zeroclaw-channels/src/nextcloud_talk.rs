@@ -1,8 +1,8 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Nextcloud Talk channel in webhook mode.
 ///

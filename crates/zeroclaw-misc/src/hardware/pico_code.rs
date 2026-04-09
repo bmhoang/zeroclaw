@@ -12,11 +12,11 @@
 //! present the tool returns an error and requires an explicit `device` parameter.
 
 use super::device::{DeviceRegistry, DeviceRuntime};
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Default timeout for `mpremote` operations (seconds).
 const MPREMOTE_TIMEOUT_SECS: u64 = 30;

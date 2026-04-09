@@ -1,10 +1,10 @@
 //! Hardware capabilities tool — Phase C: query device for reported GPIO pins.
 
 use super::serial::SerialTransport;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Tool: query device capabilities (GPIO pins, LED pin) from firmware.
 pub struct HardwareCapabilitiesTool {

@@ -1,12 +1,12 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::ClaudeCodeRunnerConfig;
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::process::Command;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_config::schema::ClaudeCodeRunnerConfig;
 
 /// Environment variables safe to pass through to the `claude` subprocess.
 const SAFE_ENV_VARS: &[&str] = &[
@@ -344,8 +344,9 @@ fn shell_escape(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
     use zeroclaw_config::schema::ClaudeCodeRunnerConfig;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_config() -> ClaudeCodeRunnerConfig {
         ClaudeCodeRunnerConfig {

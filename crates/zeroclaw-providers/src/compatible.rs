@@ -357,8 +357,10 @@ impl OpenAiCompatibleProvider {
                 .timeout(std::time::Duration::from_secs(timeout))
                 .connect_timeout(std::time::Duration::from_secs(10))
                 .default_headers(headers);
-            let builder =
-                zeroclaw_config::schema::apply_runtime_proxy_to_builder(builder, "provider.compatible");
+            let builder = zeroclaw_config::schema::apply_runtime_proxy_to_builder(
+                builder,
+                "provider.compatible",
+            );
 
             return builder.build().unwrap_or_else(|error| {
                 tracing::warn!(
@@ -368,7 +370,11 @@ impl OpenAiCompatibleProvider {
             });
         }
 
-        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("provider.compatible", timeout, 10)
+        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "provider.compatible",
+            timeout,
+            10,
+        )
     }
 
     /// Build the full URL for chat completions, detecting if base_url already includes the path.
@@ -456,11 +462,14 @@ impl OpenAiCompatibleProvider {
         }
     }
 
-    fn tool_specs_to_openai_format(tools: &[zeroclaw_api::tool::ToolSpec]) -> Vec<serde_json::Value> {
+    fn tool_specs_to_openai_format(
+        tools: &[zeroclaw_api::tool::ToolSpec],
+    ) -> Vec<serde_json::Value> {
         tools
             .iter()
             .map(|tool| {
-                let params = zeroclaw_api::schema::SchemaCleanr::clean_for_openai(tool.parameters.clone());
+                let params =
+                    zeroclaw_api::schema::SchemaCleanr::clean_for_openai(tool.parameters.clone());
                 serde_json::json!({
                     "type": "function",
                     "function": {
@@ -1429,8 +1438,9 @@ impl OpenAiCompatibleProvider {
             items
                 .iter()
                 .map(|tool| {
-                    let params =
-                        zeroclaw_api::schema::SchemaCleanr::clean_for_openai(tool.parameters.clone());
+                    let params = zeroclaw_api::schema::SchemaCleanr::clean_for_openai(
+                        tool.parameters.clone(),
+                    );
                     serde_json::json!({
                         "type": "function",
                         "function": {

@@ -1,6 +1,6 @@
-use zeroclaw_memory::{self, Memory, decay};
 use async_trait::async_trait;
 use std::fmt::Write;
+use zeroclaw_memory::{self, Memory, decay};
 
 #[async_trait]
 pub trait MemoryLoader: Send + Sync {
@@ -82,8 +82,8 @@ impl MemoryLoader for DefaultMemoryLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
     use std::sync::Arc;
+    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
 
     struct MockMemory;
     struct MockMemoryWithEntries {

@@ -5,15 +5,15 @@
 //! populated once channels are initialized (after tool construction). This mirrors
 //! the pattern used by [`DelegateTool`] for its parent-tools handle.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_api::channel::Channel;
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use parking_lot::RwLock;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
+use zeroclaw_api::channel::Channel;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
 
 /// Shared handle to the channel map. Starts empty; populated once channels boot.
 pub type ChannelMapHandle = Arc<RwLock<HashMap<String, Arc<dyn Channel>>>>;
@@ -191,8 +191,8 @@ impl Tool for ReactionTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_api::channel::{ChannelMessage, SendMessage};
     use std::sync::atomic::{AtomicBool, Ordering};
+    use zeroclaw_api::channel::{ChannelMessage, SendMessage};
 
     struct MockChannel {
         reaction_added: AtomicBool,

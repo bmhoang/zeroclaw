@@ -15,11 +15,9 @@ use serde_json::json;
 use tokio::sync::Mutex;
 use tokio::time::{Duration, timeout};
 
-use zeroclaw_config::schema::McpServerConfig;
-use crate::mcp_protocol::{
-    JsonRpcRequest, MCP_PROTOCOL_VERSION, McpToolDef, McpToolsListResult,
-};
+use crate::mcp_protocol::{JsonRpcRequest, MCP_PROTOCOL_VERSION, McpToolDef, McpToolsListResult};
 use crate::mcp_transport::{McpTransportConn, create_transport};
+use zeroclaw_config::schema::McpServerConfig;
 
 /// Timeout for receiving a response from an MCP server during init/list.
 /// Prevents a hung server from blocking the daemon indefinitely.

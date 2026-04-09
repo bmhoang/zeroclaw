@@ -1,9 +1,9 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::{Result, bail};
 use async_trait::async_trait;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant};
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Bluesky channel — polls for mentions via AT Protocol and replies as posts.
 pub struct BlueskyChannel {

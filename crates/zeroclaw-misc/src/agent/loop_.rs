@@ -1,14 +1,7 @@
 use crate::approval::{ApprovalManager, ApprovalRequest, ApprovalResponse};
-use zeroclaw_config::schema::Config;
 use crate::cost::types::BudgetCheck;
 use crate::i18n::ToolDescriptions;
-use zeroclaw_memory::{self, Memory, MemoryCategory, decay};
-use zeroclaw_providers::multimodal;
 use crate::observability::{self, Observer, ObserverEvent, runtime_trace};
-use zeroclaw_api::provider::StreamEvent;
-use zeroclaw_providers::{
-    self, ChatMessage, ChatRequest, Provider, ProviderCapabilityError, ToolCall,
-};
 use crate::runtime;
 use crate::security::{AutonomyLevel, SecurityPolicy};
 use crate::tools::{self, Tool};
@@ -24,6 +17,13 @@ use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
+use zeroclaw_api::provider::StreamEvent;
+use zeroclaw_config::schema::Config;
+use zeroclaw_memory::{self, Memory, MemoryCategory, decay};
+use zeroclaw_providers::multimodal;
+use zeroclaw_providers::{
+    self, ChatMessage, ChatRequest, Provider, ProviderCapabilityError, ToolCall,
+};
 
 // Cost tracking moved to `super::cost`.
 pub use super::cost::{
@@ -2092,8 +2092,7 @@ pub async fn run(
                         deferred_set.len(),
                         registry.server_count()
                     );
-                    deferred_section =
-                        crate::tools::build_deferred_tools_section(&deferred_set);
+                    deferred_section = crate::tools::build_deferred_tools_section(&deferred_set);
                     let activated = std::sync::Arc::new(std::sync::Mutex::new(
                         crate::tools::ActivatedToolSet::new(),
                     ));
@@ -2147,7 +2146,8 @@ pub async fn run(
         .unwrap_or("anthropic/claude-sonnet-4")
         .to_string();
 
-    let provider_runtime_options = zeroclaw_providers::provider_runtime_options_from_config(&config);
+    let provider_runtime_options =
+        zeroclaw_providers::provider_runtime_options_from_config(&config);
 
     let mut provider: Box<dyn Provider> = zeroclaw_providers::create_routed_provider_with_options(
         &provider_name,
@@ -3055,8 +3055,7 @@ pub async fn process_message(
                         deferred_set.len(),
                         registry.server_count()
                     );
-                    deferred_section =
-                        crate::tools::build_deferred_tools_section(&deferred_set);
+                    deferred_section = crate::tools::build_deferred_tools_section(&deferred_set);
                     let activated = std::sync::Arc::new(std::sync::Mutex::new(
                         crate::tools::ActivatedToolSet::new(),
                     ));
@@ -3101,7 +3100,8 @@ pub async fn process_message(
         .default_model
         .clone()
         .unwrap_or_else(|| "anthropic/claude-sonnet-4-20250514".into());
-    let provider_runtime_options = zeroclaw_providers::provider_runtime_options_from_config(&config);
+    let provider_runtime_options =
+        zeroclaw_providers::provider_runtime_options_from_config(&config);
     let provider: Box<dyn Provider> = zeroclaw_providers::create_routed_provider_with_options(
         provider_name,
         config.api_key.as_deref(),
@@ -3323,8 +3323,8 @@ mod tests {
     };
     use crate::agent::history::{DEFAULT_MAX_HISTORY_MESSAGES, InteractiveSessionState};
     use crate::agent::tool_execution::execute_one_tool;
-    use zeroclaw_providers::ChatMessage;
     use tempfile::tempdir;
+    use zeroclaw_providers::ChatMessage;
 
     // ── truncate_tool_result tests ────────────────────────────────
 
@@ -3718,12 +3718,12 @@ mod tests {
         assert_eq!(invocations.load(Ordering::SeqCst), 1);
     }
 
-    use zeroclaw_memory::{Memory, MemoryCategory, SqliteMemory};
     use crate::observability::NoopObserver;
+    use tempfile::TempDir;
+    use zeroclaw_api::provider::{ProviderCapabilities, StreamChunk, StreamEvent, StreamOptions};
+    use zeroclaw_memory::{Memory, MemoryCategory, SqliteMemory};
     use zeroclaw_providers::ChatResponse;
     use zeroclaw_providers::router::{Route, RouterProvider};
-    use zeroclaw_api::provider::{ProviderCapabilities, StreamChunk, StreamEvent, StreamOptions};
-    use tempfile::TempDir;
 
     struct NonVisionProvider {
         calls: Arc<AtomicUsize>,
@@ -3775,7 +3775,8 @@ mod tests {
             _temperature: f64,
         ) -> anyhow::Result<ChatResponse> {
             self.calls.fetch_add(1, Ordering::SeqCst);
-            let marker_count = zeroclaw_providers::multimodal::count_image_markers(request.messages);
+            let marker_count =
+                zeroclaw_providers::multimodal::count_image_markers(request.messages);
             if marker_count == 0 {
                 anyhow::bail!("expected image markers in request messages");
             }
@@ -5162,8 +5163,9 @@ mod tests {
             ChatMessage::user("run shell"),
         ];
         let observer = NoopObserver;
-        let approval_mgr =
-            ApprovalManager::for_non_interactive(&zeroclaw_config::schema::AutonomyConfig::default());
+        let approval_mgr = ApprovalManager::for_non_interactive(
+            &zeroclaw_config::schema::AutonomyConfig::default(),
+        );
 
         let result = run_tool_call_loop(
             &provider,
@@ -5912,41 +5914,6 @@ mod tests {
         assert_eq!(display, "Final answer");
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     #[test]
     fn build_tool_instructions_includes_all_tools() {
         use crate::security::SecurityPolicy;
@@ -6087,12 +6054,6 @@ mod tests {
     // Recovery Tests - Tool Call Parsing Edge Cases
     // ═══════════════════════════════════════════════════════════════════════
 
-
-
-
-
-
-
     #[test]
     fn strip_think_tags_removes_single_block() {
         assert_eq!(strip_think_tags("<think>reasoning</think>Hello"), "Hello");
@@ -6112,12 +6073,4 @@ mod tests {
     fn strip_think_tags_preserves_text_without_tags() {
         assert_eq!(strip_think_tags("plain text"), "plain text");
     }
-
-
-
-
-
-
-
-
 }

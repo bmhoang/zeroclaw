@@ -1,8 +1,8 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
 
 /// Open approved HTTPS URLs in the system default browser (no scraping, no DOM automation).
 pub struct BrowserOpenTool {
@@ -359,7 +359,8 @@ fn parse_ipv4(host: &str) -> Option<[u8; 4]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_tool(allowed_domains: Vec<&str>) -> BrowserOpenTool {
         let security = Arc::new(SecurityPolicy {

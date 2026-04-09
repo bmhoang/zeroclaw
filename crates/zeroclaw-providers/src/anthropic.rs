@@ -3,12 +3,12 @@ use crate::traits::{
     Provider, ProviderCapabilities, StreamChunk, StreamError, StreamEvent, StreamOptions,
     StreamResult, TokenUsage, ToolCall as ProviderToolCall,
 };
-use zeroclaw_api::tool::ToolSpec;
 use async_trait::async_trait;
 use base64::Engine as _;
 use futures_util::stream::{self, StreamExt};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use zeroclaw_api::tool::ToolSpec;
 
 pub struct AnthropicProvider {
     credential: Option<String>,
@@ -563,7 +563,11 @@ impl AnthropicProvider {
     }
 
     fn http_client(&self) -> Client {
-        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("provider.anthropic", 120, 10)
+        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "provider.anthropic",
+            120,
+            10,
+        )
     }
 
     /// Build a streaming request body from a `NativeChatRequest`.

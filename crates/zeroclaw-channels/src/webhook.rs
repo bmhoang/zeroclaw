@@ -1,7 +1,7 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use anyhow::{Result, bail};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Generic Webhook channel — receives messages via HTTP POST and sends replies
 /// to a configurable outbound URL. This is the "universal adapter" for any system

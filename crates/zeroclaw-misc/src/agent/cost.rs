@@ -1,7 +1,7 @@
-use zeroclaw_config::schema::ModelPricing;
 use crate::cost::CostTracker;
 use crate::cost::types::{BudgetCheck, TokenUsage as CostTokenUsage};
 use std::sync::Arc;
+use zeroclaw_config::schema::ModelPricing;
 
 // ── Cost tracking via task-local ──
 

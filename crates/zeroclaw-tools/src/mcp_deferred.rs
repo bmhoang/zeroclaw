@@ -287,8 +287,8 @@ mod tests {
 
     #[test]
     fn activated_set_tracks_activation() {
-        use zeroclaw_api::tool::ToolResult;
         use async_trait::async_trait;
+        use zeroclaw_api::tool::ToolResult;
 
         struct FakeTool;
         #[async_trait]
@@ -321,8 +321,8 @@ mod tests {
 
     #[test]
     fn activated_set_resolves_unique_suffix() {
-        use zeroclaw_api::tool::ToolResult;
         use async_trait::async_trait;
+        use zeroclaw_api::tool::ToolResult;
 
         struct FakeTool;
         #[async_trait]
@@ -352,8 +352,8 @@ mod tests {
 
     #[test]
     fn activated_set_rejects_ambiguous_suffix() {
-        use zeroclaw_api::tool::ToolResult;
         use async_trait::async_trait;
+        use zeroclaw_api::tool::ToolResult;
 
         struct FakeTool(&'static str);
         #[async_trait]

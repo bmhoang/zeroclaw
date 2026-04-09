@@ -10,12 +10,12 @@ use crate::traits::{
     ChatMessage, ChatRequest as ProviderChatRequest, ChatResponse as ProviderChatResponse,
     Provider, ProviderCapabilities, TokenUsage, ToolCall as ProviderToolCall, ToolsPayload,
 };
-use zeroclaw_api::tool::ToolSpec;
 use async_trait::async_trait;
 use hmac::{Hmac, Mac};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use zeroclaw_api::tool::ToolSpec;
 
 /// Hostname prefix for the Bedrock Runtime endpoint.
 const ENDPOINT_PREFIX: &str = "bedrock-runtime";
@@ -511,7 +511,11 @@ impl BedrockProvider {
     }
 
     fn http_client(&self) -> Client {
-        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("provider.bedrock", 120, 10)
+        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "provider.bedrock",
+            120,
+            10,
+        )
     }
 
     /// Percent-encode the model ID for URL path: only encode `:` to `%3A`.

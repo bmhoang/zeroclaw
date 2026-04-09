@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::GoogleWorkspaceAllowedOperation;
-use zeroclaw_config::policy::SecurityPolicy;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
 use std::time::Duration;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::schema::GoogleWorkspaceAllowedOperation;
 
 /// Default `gws` command execution time before kill (overridden by config).
 const DEFAULT_GWS_TIMEOUT_SECS: u64 = 30;
@@ -466,7 +466,8 @@ impl Tool for GoogleWorkspaceTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::Config;
 use crate::cron;
 use async_trait::async_trait;
 use serde::Serialize;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::schema::Config;
 
 const MAX_RUN_OUTPUT_CHARS: usize = 500;
 
@@ -117,9 +117,9 @@ fn truncate(input: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::Config;
     use chrono::{Duration as ChronoDuration, Utc};
     use tempfile::TempDir;
+    use zeroclaw_config::schema::Config;
 
     async fn test_config(tmp: &TempDir) -> Arc<Config> {
         let config = Config {

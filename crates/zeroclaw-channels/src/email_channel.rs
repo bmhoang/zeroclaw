@@ -37,13 +37,27 @@ use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 pub use zeroclaw_config::scattered_types::EmailConfig;
 
 // Local re-definitions of default helpers for tests.
-fn default_imap_port() -> u16 { 993 }
-fn default_smtp_port() -> u16 { 465 }
-fn default_imap_folder() -> String { "INBOX".into() }
-fn default_idle_timeout() -> u64 { 1740 }
-fn default_true() -> bool { true }
-fn default_subject() -> String { "ZeroClaw Message".into() }
-fn default_max_attachment_bytes() -> usize { 25 * 1024 * 1024 }
+fn default_imap_port() -> u16 {
+    993
+}
+fn default_smtp_port() -> u16 {
+    465
+}
+fn default_imap_folder() -> String {
+    "INBOX".into()
+}
+fn default_idle_timeout() -> u64 {
+    1740
+}
+fn default_true() -> bool {
+    true
+}
+fn default_subject() -> String {
+    "ZeroClaw Message".into()
+}
+fn default_max_attachment_bytes() -> usize {
+    25 * 1024 * 1024
+}
 
 type ImapSession = Session<TlsStream<TcpStream>>;
 

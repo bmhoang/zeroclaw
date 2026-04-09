@@ -1,8 +1,8 @@
-use zeroclaw_config::schema::Config;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use std::io::Write;
 use std::path::Path;
+use zeroclaw_config::schema::Config;
 
 const DAEMON_STALE_SECONDS: i64 = 30;
 const SCHEDULER_STALE_SECONDS: i64 = 120;

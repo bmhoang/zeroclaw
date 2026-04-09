@@ -1,10 +1,6 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::agent::loop_::run_tool_call_loop;
 use crate::agent::prompt::{PromptContext, SystemPromptBuilder};
-use zeroclaw_config::schema::{DelegateAgentConfig, DelegateToolConfig};
-use zeroclaw_memory::{Memory, NamespacedMemory};
 use crate::observability::traits::{Observer, ObserverEvent, ObserverMetric};
-use zeroclaw_providers::{self, ChatMessage, Provider};
 use crate::security::SecurityPolicy;
 use crate::security::policy::ToolOperation;
 use async_trait::async_trait;
@@ -15,6 +11,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::schema::{DelegateAgentConfig, DelegateToolConfig};
+use zeroclaw_memory::{Memory, NamespacedMemory};
+use zeroclaw_providers::{self, ChatMessage, Provider};
 
 /// Serializable result of a background delegate task.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -157,7 +157,10 @@ impl DelegateTool {
     }
 
     /// Attach multimodal configuration for sub-agent tool loops.
-    pub fn with_multimodal_config(mut self, config: zeroclaw_config::schema::MultimodalConfig) -> Self {
+    pub fn with_multimodal_config(
+        mut self,
+        config: zeroclaw_config::schema::MultimodalConfig,
+    ) -> Self {
         self.multimodal_config = config;
         self
     }
@@ -1258,12 +1261,12 @@ impl Observer for NoopObserver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::security::{AutonomyLevel, SecurityPolicy};
+    use anyhow::anyhow;
     use zeroclaw_config::schema::{
         DEFAULT_DELEGATE_AGENTIC_TIMEOUT_SECS, DEFAULT_DELEGATE_TIMEOUT_SECS,
     };
     use zeroclaw_providers::{ChatRequest, ChatResponse, ToolCall};
-    use crate::security::{AutonomyLevel, SecurityPolicy};
-    use anyhow::anyhow;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

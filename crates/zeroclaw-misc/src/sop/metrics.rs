@@ -1126,8 +1126,9 @@ mod tests {
             ..zeroclaw_config::schema::MemoryConfig::default()
         };
         let tmp = tempfile::tempdir().unwrap();
-        let memory: std::sync::Arc<dyn Memory> =
-            std::sync::Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let memory: std::sync::Arc<dyn Memory> = std::sync::Arc::from(
+            zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap(),
+        );
 
         let audit = crate::sop::SopAuditLogger::new(memory.clone());
         let run = make_run(
@@ -1169,8 +1170,9 @@ mod tests {
             ..zeroclaw_config::schema::MemoryConfig::default()
         };
         let tmp = tempfile::tempdir().unwrap();
-        let memory: std::sync::Arc<dyn Memory> =
-            std::sync::Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let memory: std::sync::Arc<dyn Memory> = std::sync::Arc::from(
+            zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap(),
+        );
 
         let audit = crate::sop::SopAuditLogger::new(memory.clone());
         let run = SopRun {
@@ -1205,8 +1207,9 @@ mod tests {
             ..zeroclaw_config::schema::MemoryConfig::default()
         };
         let tmp = tempfile::tempdir().unwrap();
-        let memory: std::sync::Arc<dyn Memory> =
-            std::sync::Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let memory: std::sync::Arc<dyn Memory> = std::sync::Arc::from(
+            zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap(),
+        );
 
         let collector = SopMetricsCollector::rebuild_from_memory(memory.as_ref())
             .await
@@ -1225,8 +1228,9 @@ mod tests {
             ..zeroclaw_config::schema::MemoryConfig::default()
         };
         let tmp = tempfile::tempdir().unwrap();
-        let memory: std::sync::Arc<dyn Memory> =
-            std::sync::Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let memory: std::sync::Arc<dyn Memory> = std::sync::Arc::from(
+            zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap(),
+        );
 
         let audit = crate::sop::SopAuditLogger::new(memory.clone());
         let run = make_run(
@@ -1265,8 +1269,9 @@ mod tests {
             ..zeroclaw_config::schema::MemoryConfig::default()
         };
         let tmp = tempfile::tempdir().unwrap();
-        let memory: std::sync::Arc<dyn Memory> =
-            std::sync::Arc::from(zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
+        let memory: std::sync::Arc<dyn Memory> = std::sync::Arc::from(
+            zeroclaw_memory::create_memory(&mem_cfg, tmp.path(), None).unwrap(),
+        );
 
         let audit = crate::sop::SopAuditLogger::new(memory.clone());
 

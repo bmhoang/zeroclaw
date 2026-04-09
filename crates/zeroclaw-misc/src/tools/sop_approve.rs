@@ -4,9 +4,9 @@ use async_trait::async_trait;
 use serde_json::json;
 use tracing::warn;
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::sop::types::SopRunAction;
 use crate::sop::{SopAuditLogger, SopEngine, SopMetricsCollector};
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Approve a pending SOP step that is waiting for operator approval.
 pub struct SopApproveTool {
@@ -124,10 +124,10 @@ impl Tool for SopApproveTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::SopConfig;
-    use zeroclaw_memory::Memory;
     use crate::sop::engine::SopEngine;
     use crate::sop::types::*;
+    use zeroclaw_config::schema::SopConfig;
+    use zeroclaw_memory::Memory;
 
     fn test_sop() -> Sop {
         Sop {
@@ -230,7 +230,9 @@ mod tests {
         // Verify approval audit entry was written (stored under sop_approval_ key)
         let entries = memory
             .list(
-                Some(&zeroclaw_memory::traits::MemoryCategory::Custom("sop".into())),
+                Some(&zeroclaw_memory::traits::MemoryCategory::Custom(
+                    "sop".into(),
+                )),
                 None,
             )
             .await

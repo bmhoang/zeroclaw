@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use parking_lot::Mutex;
@@ -9,6 +8,7 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 /// Discord channel — connects via Gateway WebSocket for real-time messages
 pub struct DiscordChannel {
@@ -75,7 +75,10 @@ impl DiscordChannel {
     }
 
     /// Configure voice transcription for audio attachments.
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }
@@ -113,7 +116,10 @@ impl DiscordChannel {
     }
 
     fn http_client(&self) -> reqwest::Client {
-        zeroclaw_config::schema::build_channel_proxy_client("channel.discord", self.proxy_url.as_deref())
+        zeroclaw_config::schema::build_channel_proxy_client(
+            "channel.discord",
+            self.proxy_url.as_deref(),
+        )
     }
 
     /// Check if a Discord user ID is in the allowlist.

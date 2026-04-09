@@ -1,8 +1,8 @@
 //! Auto-detection of available security features
 
-use zeroclaw_config::schema::{SandboxBackend, SecurityConfig};
 use crate::security::traits::Sandbox;
 use std::sync::Arc;
+use zeroclaw_config::schema::{SandboxBackend, SecurityConfig};
 
 /// Create a sandbox based on auto-detection or explicit config
 pub fn create_sandbox(config: &SecurityConfig) -> Arc<dyn Sandbox> {

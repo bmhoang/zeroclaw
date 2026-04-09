@@ -4,9 +4,9 @@ use async_trait::async_trait;
 use serde_json::json;
 use tracing::warn;
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::sop::types::{SopRunAction, SopStepResult, SopStepStatus};
 use crate::sop::{SopAuditLogger, SopEngine, SopMetricsCollector};
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Report a step result and advance an SOP run to the next step.
 pub struct SopAdvanceTool {
@@ -214,10 +214,10 @@ use crate::sop::engine::now_iso8601;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::SopConfig;
-    use zeroclaw_memory::Memory;
     use crate::sop::engine::SopEngine;
     use crate::sop::types::*;
+    use zeroclaw_config::schema::SopConfig;
+    use zeroclaw_memory::Memory;
 
     fn test_sop() -> Sop {
         Sop {
@@ -432,7 +432,9 @@ mod tests {
         // Verify step audit was written
         let entries = memory
             .list(
-                Some(&zeroclaw_memory::traits::MemoryCategory::Custom("sop".into())),
+                Some(&zeroclaw_memory::traits::MemoryCategory::Custom(
+                    "sop".into(),
+                )),
                 None,
             )
             .await

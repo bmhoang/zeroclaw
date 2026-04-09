@@ -1,4 +1,3 @@
-use zeroclaw_config::schema::HeartbeatConfig;
 use crate::observability::{Observer, ObserverEvent};
 use anyhow::Result;
 use chrono::{DateTime, Utc};
@@ -9,6 +8,7 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::time::{self, Duration};
 use tracing::{info, warn};
+use zeroclaw_config::schema::HeartbeatConfig;
 
 // ── Structured task types ────────────────────────────────────────
 

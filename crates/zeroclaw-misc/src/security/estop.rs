@@ -1,4 +1,3 @@
-use zeroclaw_config::schema::EstopConfig;
 use crate::security::domain_matcher::DomainMatcher;
 use crate::security::otp::OtpValidator;
 use anyhow::{Context, Result};
@@ -6,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
+use zeroclaw_config::schema::EstopConfig;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EstopLevel {
@@ -300,10 +300,10 @@ fn now_rfc3339() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::OtpConfig;
     use crate::security::SecretStore;
     use crate::security::otp::OtpValidator;
     use tempfile::tempdir;
+    use zeroclaw_config::schema::OtpConfig;
 
     fn estop_config(path: &Path) -> EstopConfig {
         EstopConfig {

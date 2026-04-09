@@ -1,8 +1,8 @@
 //! Bridge between WASM plugins and the Tool trait.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::Value;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// A tool backed by a WASM plugin function.
 pub struct WasmTool {

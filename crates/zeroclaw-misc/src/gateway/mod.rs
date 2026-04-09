@@ -22,20 +22,11 @@ pub mod static_files;
 pub mod tls;
 pub mod ws;
 
-use zeroclaw_api::channel::{Channel, SendMessage};
-use zeroclaw_channels::{gmail_push::GmailPushChannel, linq::LinqChannel, nextcloud_talk::NextcloudTalkChannel, wati::WatiChannel, whatsapp::WhatsAppChannel};
-use zeroclaw_infra::session_backend::SessionBackend;
-use zeroclaw_infra::session_sqlite::SqliteSessionBackend;
-use zeroclaw_config::schema::Config;
 use crate::cost::CostTracker;
-use zeroclaw_memory::{self, Memory, MemoryCategory};
-use zeroclaw_providers::{self, ChatMessage, Provider};
 use crate::runtime;
-use zeroclaw_config::policy::SecurityPolicy;
 use crate::security::pairing::{PairingGuard, constant_time_eq, is_public_bind};
 use crate::tools;
 use crate::tools::CanvasStore;
-use zeroclaw_api::tool::ToolSpec;
 use crate::util::truncate_with_ellipsis;
 use anyhow::{Context, Result};
 use axum::{
@@ -54,6 +45,18 @@ use std::time::{Duration, Instant};
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::timeout::TimeoutLayer;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, SendMessage};
+use zeroclaw_api::tool::ToolSpec;
+use zeroclaw_channels::{
+    gmail_push::GmailPushChannel, linq::LinqChannel, nextcloud_talk::NextcloudTalkChannel,
+    wati::WatiChannel, whatsapp::WhatsAppChannel,
+};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::schema::Config;
+use zeroclaw_infra::session_backend::SessionBackend;
+use zeroclaw_infra::session_sqlite::SqliteSessionBackend;
+use zeroclaw_memory::{self, Memory, MemoryCategory};
+use zeroclaw_providers::{self, ChatMessage, Provider};
 
 /// Maximum request body size (64KB) — prevents memory exhaustion
 pub const MAX_BODY_SIZE: usize = 65_536;
@@ -409,13 +412,14 @@ pub async fn run_gateway(
     let actual_port = listener.local_addr()?.port();
     let display_addr = format!("{host}:{actual_port}");
 
-    let provider: Arc<dyn Provider> = Arc::from(zeroclaw_providers::create_resilient_provider_with_options(
-        config.default_provider.as_deref().unwrap_or("openrouter"),
-        config.api_key.as_deref(),
-        config.api_url.as_deref(),
-        &config.reliability,
-        &zeroclaw_providers::provider_runtime_options_from_config(&config),
-    )?);
+    let provider: Arc<dyn Provider> =
+        Arc::from(zeroclaw_providers::create_resilient_provider_with_options(
+            config.default_provider.as_deref().unwrap_or("openrouter"),
+            config.api_key.as_deref(),
+            config.api_url.as_deref(),
+            &config.reliability,
+            &zeroclaw_providers::provider_runtime_options_from_config(&config),
+        )?);
     let model = config
         .default_model
         .clone()
@@ -1302,8 +1306,11 @@ async fn run_gateway_chat_simple(state: &AppState, message: &str) -> anyhow::Res
     messages.extend(user_messages);
 
     let multimodal_config = state.config.lock().multimodal.clone();
-    let prepared =
-        zeroclaw_providers::multimodal::prepare_messages_for_provider(&messages, &multimodal_config).await?;
+    let prepared = zeroclaw_providers::multimodal::prepare_messages_for_provider(
+        &messages,
+        &multimodal_config,
+    )
+    .await?;
 
     state
         .provider
@@ -2249,15 +2256,15 @@ async fn handle_pair_code(State(state): State<AppState>) -> impl IntoResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_api::channel::ChannelMessage;
-    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
-    use zeroclaw_providers::Provider;
     use async_trait::async_trait;
     use axum::http::HeaderValue;
     use axum::response::IntoResponse;
     use http_body_util::BodyExt;
     use parking_lot::Mutex;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use zeroclaw_api::channel::ChannelMessage;
+    use zeroclaw_memory::{Memory, MemoryCategory, MemoryEntry};
+    use zeroclaw_providers::Provider;
 
     /// Generate a random hex secret at runtime to avoid hard-coded cryptographic values.
     fn generate_test_secret() -> String {

@@ -5,9 +5,9 @@ use std::net::IpAddr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use zeroclaw_config::schema::WebhookAuditConfig;
 use crate::hooks::traits::{HookHandler, HookResult};
 use zeroclaw_api::tool::ToolResult;
+use zeroclaw_config::schema::WebhookAuditConfig;
 
 /// Validate a webhook URL against SSRF attacks.
 ///

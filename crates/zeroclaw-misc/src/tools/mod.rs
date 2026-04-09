@@ -44,17 +44,18 @@ pub use zeroclaw_tools::ask_user::AskUserTool;
 pub use zeroclaw_tools::ask_user::ChannelMapHandle;
 pub use zeroclaw_tools::backup_tool::BackupTool;
 pub use zeroclaw_tools::browser::{BrowserTool, ComputerUseConfig};
-pub use zeroclaw_tools::browser_delegate::{BrowserDelegateTool};
+pub use zeroclaw_tools::browser_delegate::BrowserDelegateTool;
 pub use zeroclaw_tools::browser_open::BrowserOpenTool;
 pub use zeroclaw_tools::calculator::CalculatorTool;
+pub use zeroclaw_tools::canvas::{ALLOWED_CONTENT_TYPES, MAX_CONTENT_SIZE};
 pub use zeroclaw_tools::canvas::{CanvasStore, CanvasTool};
 pub use zeroclaw_tools::claude_code::ClaudeCodeTool;
 pub use zeroclaw_tools::claude_code_runner::ClaudeCodeRunnerTool;
+pub use zeroclaw_tools::cli_discovery::{DiscoveredCli, discover_cli_tools};
 pub use zeroclaw_tools::cloud_ops::CloudOpsTool;
 pub use zeroclaw_tools::cloud_patterns::CloudPatternsTool;
 pub use zeroclaw_tools::codex_cli::CodexCliTool;
 pub use zeroclaw_tools::composio::ComposioTool;
-pub use zeroclaw_tools::cli_discovery::{discover_cli_tools, DiscoveredCli};
 pub use zeroclaw_tools::content_search::ContentSearchTool;
 pub use zeroclaw_tools::data_management::DataManagementTool;
 pub use zeroclaw_tools::discord_search::DiscordSearchTool;
@@ -75,17 +76,22 @@ pub use zeroclaw_tools::jira_tool::JiraTool;
 pub use zeroclaw_tools::knowledge_tool::KnowledgeTool;
 pub use zeroclaw_tools::linkedin::LinkedInTool;
 pub use zeroclaw_tools::llm_task::LlmTaskTool;
-pub use zeroclaw_tools::mcp_tool::McpToolWrapper;
-pub use zeroclaw_tools::mcp_deferred::{ActivatedToolSet, DeferredMcpToolSet, build_deferred_tools_section};
 pub use zeroclaw_tools::mcp_client::McpRegistry;
+pub use zeroclaw_tools::mcp_deferred::{
+    ActivatedToolSet, DeferredMcpToolSet, build_deferred_tools_section,
+};
+pub use zeroclaw_tools::mcp_tool::McpToolWrapper;
 pub use zeroclaw_tools::memory_export::MemoryExportTool;
 pub use zeroclaw_tools::memory_forget::MemoryForgetTool;
 pub use zeroclaw_tools::memory_purge::MemoryPurgeTool;
 pub use zeroclaw_tools::memory_recall::MemoryRecallTool;
 pub use zeroclaw_tools::memory_store::MemoryStoreTool;
+pub use zeroclaw_tools::microsoft365::Microsoft365Tool;
 pub use zeroclaw_tools::model_routing_config::ModelRoutingConfigTool;
 pub use zeroclaw_tools::notion_tool::NotionTool;
 pub use zeroclaw_tools::opencode_cli::OpenCodeCliTool;
+#[cfg(feature = "rag-pdf")]
+pub use zeroclaw_tools::pdf_read::PdfReadTool;
 pub use zeroclaw_tools::pipeline::PipelineTool;
 pub use zeroclaw_tools::poll::PollTool;
 pub use zeroclaw_tools::project_intel::ProjectIntelTool;
@@ -102,15 +108,11 @@ pub use zeroclaw_tools::weather_tool::WeatherTool;
 pub use zeroclaw_tools::web_fetch::WebFetchTool;
 pub use zeroclaw_tools::web_search_tool::WebSearchTool;
 pub use zeroclaw_tools::workspace_tool::WorkspaceTool;
-pub use zeroclaw_tools::canvas::{MAX_CONTENT_SIZE, ALLOWED_CONTENT_TYPES};
-pub use zeroclaw_tools::microsoft365::Microsoft365Tool;
-#[cfg(feature = "rag-pdf")]
-pub use zeroclaw_tools::pdf_read::PdfReadTool;
 pub use zeroclaw_tools::wrappers::{PathGuardedTool, RateLimitedTool};
 
 // Traits from zeroclaw-api
-pub use zeroclaw_api::tool::{Tool, ToolResult, ToolSpec};
 pub use zeroclaw_api::schema::{CleaningStrategy, SchemaCleanr};
+pub use zeroclaw_api::tool::{Tool, ToolResult, ToolSpec};
 
 // Local tool re-exports (tools with root deps, kept in misc)
 pub use cron_add::CronAddTool;
@@ -137,15 +139,14 @@ pub use sop_list::SopListTool;
 pub use sop_status::SopStatusTool;
 pub use verifiable_intent::VerifiableIntentTool;
 
-
-use zeroclaw_config::schema::{Config, DelegateAgentConfig};
-use zeroclaw_memory::Memory;
 use crate::runtime::{NativeRuntime, RuntimeAdapter};
 use crate::security::{SecurityPolicy, create_sandbox};
 use async_trait::async_trait;
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
+use zeroclaw_config::schema::{Config, DelegateAgentConfig};
+use zeroclaw_memory::Memory;
 
 /// Shared handle to the delegate tool's parent-tools list.
 /// Callers can push additional tools (e.g. MCP wrappers) after construction.
@@ -969,8 +970,8 @@ pub fn all_tools_with_runtime(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::{BrowserConfig, Config, MemoryConfig};
     use tempfile::TempDir;
+    use zeroclaw_config::schema::{BrowserConfig, Config, MemoryConfig};
 
     fn test_config(tmp: &TempDir) -> Config {
         Config {
@@ -1272,7 +1273,8 @@ mod tests {
         let browser = BrowserConfig::default();
         let http = zeroclaw_config::schema::HttpRequestConfig::default();
         let mut cfg = test_config(&tmp);
-        cfg.skills.prompt_injection_mode = zeroclaw_config::schema::SkillsPromptInjectionMode::Compact;
+        cfg.skills.prompt_injection_mode =
+            zeroclaw_config::schema::SkillsPromptInjectionMode::Compact;
 
         let (tools, _, _, _, _, _) = all_tools(
             Arc::new(cfg.clone()),

@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use serde_json::json;
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::sop::{SopEngine, SopMetricsCollector};
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Query SOP execution status — active runs, finished runs, or a specific run by ID.
 pub struct SopStatusTool {
@@ -237,9 +237,9 @@ fn format_metric_value(val: &serde_json::Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::schema::SopConfig;
     use crate::sop::engine::SopEngine;
     use crate::sop::types::*;
+    use zeroclaw_config::schema::SopConfig;
 
     fn test_sop(name: &str) -> Sop {
         Sop {

@@ -4,9 +4,9 @@
 //! returns the memory map. Uses probe-rs for Nucleo/STM32 when available; otherwise
 //! returns static maps from datasheets.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Known memory maps (from datasheets). Used when probe-rs is unavailable.
 const MEMORY_MAPS: &[(&str, &str)] = &[

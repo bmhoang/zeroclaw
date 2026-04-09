@@ -28,17 +28,17 @@ use crate::agent::agent::Agent;
 use crate::agent::dispatcher::{
     NativeToolDispatcher, ToolDispatcher, ToolExecutionResult, XmlToolDispatcher,
 };
-use zeroclaw_config::schema::{AgentConfig, MemoryConfig};
-use zeroclaw_memory::{self, Memory};
 use crate::observability::{NoopObserver, Observer};
-use zeroclaw_providers::{
-    ChatMessage, ChatRequest, ChatResponse, ConversationMessage, Provider, ToolCall,
-    ToolResultMessage,
-};
 use crate::tools::{Tool, ToolResult};
 use anyhow::Result;
 use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
+use zeroclaw_config::schema::{AgentConfig, MemoryConfig};
+use zeroclaw_memory::{self, Memory};
+use zeroclaw_providers::{
+    ChatMessage, ChatRequest, ChatResponse, ConversationMessage, Provider, ToolCall,
+    ToolResultMessage,
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Test Helpers — Mock Provider, Mock Tool, Mock Memory

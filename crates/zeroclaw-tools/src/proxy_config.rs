@@ -1,13 +1,13 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::{
-    Config, ProxyConfig, ProxyScope, runtime_proxy_config, set_runtime_proxy_config,
-};
-use zeroclaw_config::policy::SecurityPolicy;
 use crate::util_helpers::MaybeSet;
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use std::fs;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::schema::{
+    Config, ProxyConfig, ProxyScope, runtime_proxy_config, set_runtime_proxy_config,
+};
 
 pub struct ProxyConfigTool {
     config: Arc<Config>,
@@ -438,8 +438,9 @@ impl Tool for ProxyConfigTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

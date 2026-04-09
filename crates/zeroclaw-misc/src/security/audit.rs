@@ -3,7 +3,6 @@
 //! Each audit entry is chained via a Merkle hash: `entry_hash = SHA-256(prev_hash || canonical_json)`.
 //! This makes the trail tamper-evident — modifying any entry invalidates all subsequent hashes.
 
-use zeroclaw_config::schema::AuditConfig;
 use anyhow::{Result, bail};
 use chrono::{DateTime, Utc};
 use parking_lot::Mutex;
@@ -13,6 +12,7 @@ use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use zeroclaw_config::schema::AuditConfig;
 
 /// Well-known seed for the genesis entry's `prev_hash`.
 const GENESIS_PREV_HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";

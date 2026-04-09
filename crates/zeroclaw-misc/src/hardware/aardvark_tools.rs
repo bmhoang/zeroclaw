@@ -12,11 +12,11 @@
 
 use super::device::DeviceRegistry;
 use super::protocol::ZcCommand;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

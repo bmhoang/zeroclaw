@@ -4,11 +4,8 @@ use crate::agent::dispatcher::{
 use crate::agent::eval::AutoClassifyExt;
 use crate::agent::memory_loader::{DefaultMemoryLoader, MemoryLoader};
 use crate::agent::prompt::{PromptContext, SystemPromptBuilder};
-use zeroclaw_config::schema::Config;
 use crate::i18n::ToolDescriptions;
-use zeroclaw_memory::{self, Memory, MemoryCategory};
 use crate::observability::{self, Observer, ObserverEvent};
-use zeroclaw_providers::{self, ChatMessage, ChatRequest, ConversationMessage, Provider};
 use crate::runtime;
 use crate::security::SecurityPolicy;
 use crate::tools::{self, Tool, ToolSpec};
@@ -18,6 +15,9 @@ use std::collections::HashMap;
 use std::io::Write as IoWrite;
 use std::sync::Arc;
 use std::time::Instant;
+use zeroclaw_config::schema::Config;
+use zeroclaw_memory::{self, Memory, MemoryCategory};
+use zeroclaw_providers::{self, ChatMessage, ChatRequest, ConversationMessage, Provider};
 
 // Re-export TurnEvent from zeroclaw-types for backwards compatibility.
 pub use zeroclaw_api::agent::TurnEvent;
@@ -177,7 +177,10 @@ impl AgentBuilder {
         self
     }
 
-    pub fn identity_config(mut self, identity_config: zeroclaw_config::schema::IdentityConfig) -> Self {
+    pub fn identity_config(
+        mut self,
+        identity_config: zeroclaw_config::schema::IdentityConfig,
+    ) -> Self {
         self.identity_config = Some(identity_config);
         self
     }
@@ -371,13 +374,14 @@ impl Agent {
             &config.workspace_dir,
         ));
 
-        let memory: Arc<dyn Memory> = Arc::from(zeroclaw_memory::create_memory_with_storage_and_routes(
-            &config.memory,
-            &config.embedding_routes,
-            Some(&config.storage.provider.config),
-            &config.workspace_dir,
-            config.api_key.as_deref(),
-        )?);
+        let memory: Arc<dyn Memory> =
+            Arc::from(zeroclaw_memory::create_memory_with_storage_and_routes(
+                &config.memory,
+                &config.embedding_routes,
+                Some(&config.storage.provider.config),
+                &config.workspace_dir,
+                config.api_key.as_deref(),
+            )?);
 
         let composio_key = if config.composio.enabled {
             config.composio.api_key.as_deref()
@@ -483,7 +487,8 @@ impl Agent {
             .unwrap_or("anthropic/claude-sonnet-4-20250514")
             .to_string();
 
-        let provider_runtime_options = zeroclaw_providers::provider_runtime_options_from_config(config);
+        let provider_runtime_options =
+            zeroclaw_providers::provider_runtime_options_from_config(config);
 
         let provider: Box<dyn Provider> = zeroclaw_providers::create_routed_provider_with_options(
             provider_name,
@@ -1858,12 +1863,13 @@ mod tests {
             let mut count = self.call_count.lock();
             *count += 1;
             if *count == 1 {
-                let tc =
-                    zeroclaw_providers::traits::StreamEvent::ToolCall(zeroclaw_providers::ToolCall {
+                let tc = zeroclaw_providers::traits::StreamEvent::ToolCall(
+                    zeroclaw_providers::ToolCall {
                         id: "tc_stream_1".into(),
                         name: "echo".into(),
                         arguments: "{}".into(),
-                    });
+                    },
+                );
                 stream::iter(vec![
                     Ok(tc),
                     Ok(zeroclaw_providers::traits::StreamEvent::Final),

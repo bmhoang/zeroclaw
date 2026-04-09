@@ -139,7 +139,10 @@ pub fn flash_arduino_firmware(port: &str) -> Result<()> {
 }
 
 /// Resolve port from config or path. Returns the path to use for flashing.
-pub fn resolve_port(config: &zeroclaw_config::schema::Config, path_override: Option<&str>) -> Option<String> {
+pub fn resolve_port(
+    config: &zeroclaw_config::schema::Config,
+    path_override: Option<&str>,
+) -> Option<String> {
     if let Some(p) = path_override {
         return Some(p.to_string());
     }

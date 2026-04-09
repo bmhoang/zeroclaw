@@ -3112,12 +3112,22 @@ mod tests {
 }
 
 #[cfg(feature = "gateway")]
-async fn run_gateway_if_enabled(host: &str, port: u16, config: zeroclaw::config::Config, tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>) -> anyhow::Result<()> {
+async fn run_gateway_if_enabled(
+    host: &str,
+    port: u16,
+    config: zeroclaw::config::Config,
+    tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>,
+) -> anyhow::Result<()> {
     gateway::run_gateway(host, port, config, tx).await
 }
 
 #[cfg(not(feature = "gateway"))]
-async fn run_gateway_if_enabled(_host: &str, _port: u16, _config: zeroclaw::config::Config, _tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>) -> anyhow::Result<()> {
+async fn run_gateway_if_enabled(
+    _host: &str,
+    _port: u16,
+    _config: zeroclaw::config::Config,
+    _tx: Option<tokio::sync::broadcast::Sender<serde_json::Value>>,
+) -> anyhow::Result<()> {
     anyhow::bail!("Gateway feature is not enabled. Rebuild with --features gateway")
 }
 

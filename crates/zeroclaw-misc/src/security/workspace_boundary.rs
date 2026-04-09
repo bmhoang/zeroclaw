@@ -3,8 +3,8 @@
 //! Prevents cross-workspace data access and enforces per-workspace
 //! domain allowlists and tool restrictions.
 
-use zeroclaw_config::workspace::WorkspaceProfile;
 use std::path::Path;
+use zeroclaw_config::workspace::WorkspaceProfile;
 
 /// Outcome of a workspace boundary check.
 #[derive(Debug, Clone, PartialEq, Eq)]

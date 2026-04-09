@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_memory::Memory;
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
+use zeroclaw_memory::Memory;
 
 /// Let the agent bulk-delete memories by namespace or session
 pub struct MemoryPurgeTool {
@@ -116,9 +116,10 @@ impl Tool for MemoryPurgeTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::{MemoryCategory, SqliteMemory};
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_memory::{MemoryCategory, SqliteMemory};
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

@@ -1,5 +1,5 @@
-use zeroclaw_api::provider::ChatMessage;
 use std::collections::HashSet;
+use zeroclaw_api::provider::ChatMessage;
 
 /// Signals extracted from conversation context to guide tool filtering.
 #[derive(Debug, Clone)]

@@ -1,10 +1,10 @@
-use zeroclaw_config::schema::Config;
 use anyhow::Result;
 use chrono::Utc;
 use std::future::Future;
 use std::path::PathBuf;
 use tokio::task::JoinHandle;
 use tokio::time::Duration;
+use zeroclaw_config::schema::Config;
 
 const STATUS_FLUSH_SECONDS: u64 = 5;
 
@@ -911,10 +911,10 @@ fn has_supervised_channels(config: &Config) -> bool {
 }
 
 async fn run_mqtt_sop_listener(config: &zeroclaw_config::schema::MqttConfig) -> Result<()> {
-    use zeroclaw_config::schema::SopConfig;
-    use zeroclaw_memory::NoneMemory;
     use crate::sop::{SopAuditLogger, SopEngine};
     use std::sync::{Arc, Mutex};
+    use zeroclaw_config::schema::SopConfig;
+    use zeroclaw_memory::NoneMemory;
 
     // Initialize SOP engine
     let engine = Arc::new(Mutex::new(SopEngine::new(SopConfig::default())));
@@ -1062,15 +1062,16 @@ mod tests {
     #[test]
     fn detects_nextcloud_talk_as_supervised_channel() {
         let mut config = Config::default();
-        config.channels_config.nextcloud_talk = Some(zeroclaw_config::schema::NextcloudTalkConfig {
-            enabled: true,
-            base_url: "https://cloud.example.com".into(),
-            app_token: "app-token".into(),
-            webhook_secret: None,
-            allowed_users: vec!["*".into()],
-            proxy_url: None,
-            bot_name: None,
-        });
+        config.channels_config.nextcloud_talk =
+            Some(zeroclaw_config::schema::NextcloudTalkConfig {
+                enabled: true,
+                base_url: "https://cloud.example.com".into(),
+                app_token: "app-token".into(),
+                webhook_secret: None,
+                allowed_users: vec!["*".into()],
+                proxy_url: None,
+                bot_name: None,
+            });
         assert!(has_supervised_channels(&config));
     }
 

@@ -1,4 +1,3 @@
-use zeroclaw_config::secrets::SecretStore;
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -9,6 +8,7 @@ use std::time::Duration;
 use tokio::fs::{self, OpenOptions};
 use tokio::io::AsyncWriteExt;
 use tokio::time::sleep;
+use zeroclaw_config::secrets::SecretStore;
 
 const CURRENT_SCHEMA_VERSION: u32 = 1;
 const PROFILES_FILENAME: &str = "auth-profiles.json";

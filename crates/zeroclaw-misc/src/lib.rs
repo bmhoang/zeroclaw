@@ -7,10 +7,10 @@ pub mod identity;
 pub mod migration;
 pub mod util;
 
-pub mod approval;
 pub mod agent;
-pub mod cost;
+pub mod approval;
 pub mod channels;
+pub mod cost;
 pub mod cron;
 pub mod daemon;
 pub mod doctor;

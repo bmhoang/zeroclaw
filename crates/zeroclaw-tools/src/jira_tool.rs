@@ -1,10 +1,10 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::{SecurityPolicy, ToolOperation};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::{SecurityPolicy, ToolOperation};
 
 const JIRA_SEARCH_PAGE_SIZE: u32 = 100;
 const MAX_ERROR_BODY_CHARS: usize = 500;
@@ -955,7 +955,8 @@ fn build_adf(text: &str, mentions: &HashMap<String, (String, String)>) -> Value 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_tool(allowed_actions: Vec<&str>) -> JiraTool {
         let security = Arc::new(SecurityPolicy {

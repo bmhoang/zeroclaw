@@ -1,9 +1,7 @@
-
-
 pub mod registry;
 
-use zeroclaw_config::schema::Config;
 use anyhow::Result;
+use zeroclaw_config::schema::Config;
 
 /// Integration status
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]

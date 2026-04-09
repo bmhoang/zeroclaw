@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
@@ -6,6 +5,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const DINGTALK_BOT_CALLBACK_TOPIC: &str = "/v1.0/im/bot/messages/get";
 
@@ -47,7 +47,10 @@ impl DingTalkChannel {
     }
 
     fn http_client(&self) -> reqwest::Client {
-        zeroclaw_config::schema::build_channel_proxy_client("channel.dingtalk", self.proxy_url.as_deref())
+        zeroclaw_config::schema::build_channel_proxy_client(
+            "channel.dingtalk",
+            self.proxy_url.as_deref(),
+        )
     }
 
     fn is_user_allowed(&self, user_id: &str) -> bool {

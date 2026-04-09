@@ -1,5 +1,5 @@
-pub mod skill_tool;
 pub mod skill_http;
+pub mod skill_tool;
 use anyhow::{Context, Result};
 use directories::UserDirs;
 use reqwest::Url;
@@ -130,7 +130,10 @@ pub fn load_skills(workspace_dir: &Path) -> Vec<Skill> {
 }
 
 /// Load skills using runtime config values (preferred at runtime).
-pub fn load_skills_with_config(workspace_dir: &Path, config: &zeroclaw_config::schema::Config) -> Vec<Skill> {
+pub fn load_skills_with_config(
+    workspace_dir: &Path,
+    config: &zeroclaw_config::schema::Config,
+) -> Vec<Skill> {
     load_skills_with_open_skills_config(
         workspace_dir,
         Some(config.skills.open_skills_enabled),
@@ -794,15 +797,20 @@ pub fn skills_to_prompt_with_mode(
         let location = render_skill_location(
             skill,
             workspace_dir,
-            matches!(mode, zeroclaw_config::schema::SkillsPromptInjectionMode::Compact),
+            matches!(
+                mode,
+                zeroclaw_config::schema::SkillsPromptInjectionMode::Compact
+            ),
         );
         write_xml_text_element(&mut prompt, 4, "location", &location);
 
         // In Full mode, inline both instructions and tools.
         // In Compact mode, skip instructions (loaded on demand) but keep tools
         // so the LLM knows which skill tools are available.
-        if matches!(mode, zeroclaw_config::schema::SkillsPromptInjectionMode::Full)
-            && !skill.prompts.is_empty()
+        if matches!(
+            mode,
+            zeroclaw_config::schema::SkillsPromptInjectionMode::Full
+        ) && !skill.prompts.is_empty()
         {
             let _ = writeln!(prompt, "    <instructions>");
             for instruction in &skill.prompts {

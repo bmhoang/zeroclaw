@@ -1,4 +1,3 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::Client;
@@ -6,6 +5,7 @@ use serde::Deserialize;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const GROUP_TARGET_PREFIX: &str = "group:";
 

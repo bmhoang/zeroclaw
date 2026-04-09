@@ -3,11 +3,11 @@
 //! Exposes the knowledge graph to the agent via the `Tool` trait with actions:
 //! capture, search, relate, suggest, expert_find, lessons_extract, graph_stats.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_memory::knowledge_graph::{KnowledgeGraph, NodeType, Relation};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_memory::knowledge_graph::{KnowledgeGraph, NodeType, Relation};
 
 /// Tool for managing a knowledge graph of patterns, decisions, lessons, and experts.
 pub struct KnowledgeTool {
@@ -424,8 +424,8 @@ fn truncate_str(s: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_memory::knowledge_graph::KnowledgeGraph;
     use tempfile::TempDir;
+    use zeroclaw_memory::knowledge_graph::KnowledgeGraph;
 
     fn test_tool() -> (TempDir, KnowledgeTool) {
         let tmp = TempDir::new().unwrap();

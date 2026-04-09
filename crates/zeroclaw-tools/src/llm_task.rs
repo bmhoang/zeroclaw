@@ -4,13 +4,13 @@
 //! optionally validates the response against a caller-supplied JSON Schema.
 //! Ideal for structured data extraction in workflows.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_api::provider::{self, Provider};
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::provider::{self, Provider};
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
 
 /// Tool that runs a single prompt through an LLM and optionally validates
 /// the response against a JSON Schema. No tools are provided to the LLM —

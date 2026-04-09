@@ -4,8 +4,8 @@ use std::time::Duration;
 use anyhow::Result;
 use std::sync::Arc;
 
-use zeroclaw_memory::traits::Memory;
 use zeroclaw_api::provider::{ChatMessage, Provider};
+use zeroclaw_memory::traits::Memory;
 
 pub use zeroclaw_config::scattered_types::ContextCompressionConfig;
 

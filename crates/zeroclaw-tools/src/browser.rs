@@ -5,8 +5,6 @@
 //! `--features browser-native` and selected through config.
 //! Computer-use (OS-level) actions are supported via an optional sidecar endpoint.
 
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::policy::SecurityPolicy;
 use anyhow::Context;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -17,6 +15,8 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::process::Command;
 use tracing::debug;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
 
 /// Computer-use sidecar settings.
 #[derive(Clone)]

@@ -8,12 +8,12 @@ pub mod auth;
 pub mod graph_client;
 pub mod types;
 
-use zeroclaw_config::policy::SecurityPolicy;
-use zeroclaw_config::policy::ToolOperation;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::policy::ToolOperation;
 
 /// Maximum download size for OneDrive files (10 MB).
 const MAX_ONEDRIVE_DOWNLOAD_SIZE: usize = 10 * 1024 * 1024;
@@ -34,8 +34,11 @@ impl Microsoft365Tool {
         security: Arc<SecurityPolicy>,
         zeroclaw_dir: &std::path::Path,
     ) -> anyhow::Result<Self> {
-        let http_client =
-            zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("tool.microsoft365", 60, 10);
+        let http_client = zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "tool.microsoft365",
+            60,
+            10,
+        );
         let token_cache = Arc::new(auth::TokenCache::new(config.clone(), zeroclaw_dir)?);
         Ok(Self {
             config,

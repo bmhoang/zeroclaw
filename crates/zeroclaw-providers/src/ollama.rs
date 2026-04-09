@@ -155,7 +155,11 @@ impl OllamaProvider {
     }
 
     fn http_client(&self) -> Client {
-        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts("provider.ollama", 300, 10)
+        zeroclaw_config::schema::build_runtime_proxy_client_with_timeouts(
+            "provider.ollama",
+            300,
+            10,
+        )
     }
 
     fn resolve_request_details(&self, model: &str) -> anyhow::Result<(String, bool)> {
@@ -846,8 +850,9 @@ impl Provider for OllamaProvider {
                 let tools: Vec<serde_json::Value> = specs
                     .iter()
                     .map(|s| {
-                        let params =
-                            zeroclaw_api::schema::SchemaCleanr::clean_for_openai(s.parameters.clone());
+                        let params = zeroclaw_api::schema::SchemaCleanr::clean_for_openai(
+                            s.parameters.clone(),
+                        );
                         serde_json::json!({
                             "type": "function",
                             "function": {

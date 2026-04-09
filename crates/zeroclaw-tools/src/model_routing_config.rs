@@ -1,12 +1,12 @@
-use zeroclaw_api::tool::{Tool, ToolResult};
-use zeroclaw_config::schema::{ClassificationRule, Config, DelegateAgentConfig, ModelRouteConfig};
-use zeroclaw_config::policy::SecurityPolicy;
 use crate::util_helpers::MaybeSet;
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::fs;
 use std::sync::Arc;
+use zeroclaw_api::tool::{Tool, ToolResult};
+use zeroclaw_config::policy::SecurityPolicy;
+use zeroclaw_config::schema::{ClassificationRule, Config, DelegateAgentConfig, ModelRouteConfig};
 
 const DEFAULT_AGENT_MAX_DEPTH: u32 = 3;
 const DEFAULT_AGENT_MAX_ITERATIONS: usize = 10;
@@ -968,8 +968,9 @@ impl Tool for ModelRoutingConfigTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zeroclaw_config::autonomy::AutonomyLevel; use zeroclaw_config::policy::SecurityPolicy;
     use tempfile::TempDir;
+    use zeroclaw_config::autonomy::AutonomyLevel;
+    use zeroclaw_config::policy::SecurityPolicy;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy {

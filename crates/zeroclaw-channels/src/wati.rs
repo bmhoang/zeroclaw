@@ -1,6 +1,6 @@
-use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 use async_trait::async_trait;
 use uuid::Uuid;
+use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
 
 const MAX_WATI_AUDIO_BYTES: u64 = 25 * 1024 * 1024;
 
@@ -41,12 +41,18 @@ impl WatiChannel {
             api_url,
             tenant_id,
             allowed_numbers,
-            client: zeroclaw_config::schema::build_channel_proxy_client("channel.wati", proxy_url.as_deref()),
+            client: zeroclaw_config::schema::build_channel_proxy_client(
+                "channel.wati",
+                proxy_url.as_deref(),
+            ),
             transcription_manager: None,
         }
     }
 
-    pub fn with_transcription(mut self, config: zeroclaw_config::schema::TranscriptionConfig) -> Self {
+    pub fn with_transcription(
+        mut self,
+        config: zeroclaw_config::schema::TranscriptionConfig,
+    ) -> Self {
         if !config.enabled {
             return self;
         }

@@ -1,11 +1,9 @@
-
-
-use zeroclaw_config::schema::Config;
 use anyhow::{Context, Result, bail};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
+use zeroclaw_config::schema::Config;
 
 const SERVICE_LABEL: &str = "com.zeroclaw.daemon";
 const WINDOWS_TASK_NAME: &str = "ZeroClaw Daemon";
@@ -126,7 +124,6 @@ fn is_running_linux() -> bool {
         .map(|out| out.contains("started"))
         .unwrap_or(false)
 }
-
 
 pub fn install(config: &Config, init_system: InitSystem) -> Result<()> {
     if cfg!(target_os = "macos") {

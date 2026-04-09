@@ -6,9 +6,9 @@
 //! - Pin/alias tables (e.g. `red_led: 13`) for explicit lookup
 //! - Keyword retrieval (default) or semantic search via embeddings (optional)
 
-use zeroclaw_memory::chunker;
 use std::collections::HashMap;
 use std::path::Path;
+use zeroclaw_memory::chunker;
 
 /// A chunk of datasheet content with board metadata.
 #[derive(Debug, Clone)]

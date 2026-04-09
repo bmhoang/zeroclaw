@@ -7,13 +7,13 @@ use std::sync::Arc;
 
 use crate::security::SecurityPolicy;
 use crate::security::policy::ToolOperation;
-use zeroclaw_api::tool::{Tool, ToolResult};
 use crate::verifiable_intent::error::ViError;
 use crate::verifiable_intent::types::{Constraint, Fulfillment};
 use crate::verifiable_intent::verification::{
     ConstraintCheckResult, StrictnessMode, check_constraints, verify_sd_hash_binding,
     verify_timestamps,
 };
+use zeroclaw_api::tool::{Tool, ToolResult};
 
 /// Tool for verifying Verifiable Intent credential chains and evaluating
 /// constraints against fulfillment data.
